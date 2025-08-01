@@ -165,3 +165,94 @@ _As a patient, I want to view my upcoming consultations, so that I can prepare f
 **Notes:**  
 - Include option to cancel if within allowed time window.
 
+- ---
+
+**Title:**  
+_As a doctor, I want to log in to the portal, so that I can manage my appointments._
+
+**Acceptance Criteria:**  
+1. Login form must authenticate doctor’s credentials.  
+2. After login, doctor is redirected to their dashboard.  
+3. Incorrect credentials should display a clear error message.
+
+**Priority:** High  
+**Story Points:** 2  
+**Notes:**  
+- Same login structure as other roles.
+
+---
+
+**Title:**  
+_As a doctor, I want to log out of the portal, so that I can protect my data._
+
+**Acceptance Criteria:**  
+1. A logout option is always visible on the dashboard.  
+2. Logout ends the session and redirects to login screen.  
+3. No personal data remains cached.
+
+**Priority:** Medium  
+**Story Points:** 2  
+**Notes:**  
+- Apply same security as patient/admin logout.
+
+---
+
+**Title:**  
+_As a doctor, I want to view my appointment calendar, so that I can stay organized._
+
+**Acceptance Criteria:**  
+1. Dashboard shows a calendar view of upcoming appointments.  
+2. Each appointment displays date, time, and patient name.  
+3. Calendar can be filtered by week or month.
+
+**Priority:** High  
+**Story Points:** 3  
+**Notes:**  
+- Integration with patient booking system required.
+
+---
+
+**Title:**  
+_As a doctor, I want to mark my unavailability, so that patients can only book during available times._
+
+**Acceptance Criteria:**  
+1. Interface allows marking specific times as unavailable.  
+2. Unavailable slots are hidden from patient booking view.  
+3. Doctors can modify availability anytime.
+
+**Priority:** High  
+**Story Points:** 5  
+**Notes:**  
+- Consider time zone or location differences.
+
+---
+
+**Title:**  
+_As a doctor, I want to update my profile with specialization and contact info, so that patients have up-to-date information._
+
+**Acceptance Criteria:**  
+1. Form allows editing name, contact, specialty, and description.  
+2. Updates are saved and visible to patients instantly.  
+3. Validation is applied to all required fields.
+
+**Priority:** Medium  
+**Story Points:** 3  
+**Notes:**  
+- Optional field for bio or languages spoken.
+
+---
+
+**Title:**  
+_As a doctor, I want to view patient details for upcoming appointments, so that I can prepare in advance._
+
+**Acceptance Criteria:**  
+1. Appointment list includes link to patient details.  
+2. Patient info includes name, contact, and reason for visit.  
+3. Only future appointments are shown.
+
+**Priority:** High  
+**Story Points:** 4  
+**Notes:**  
+- Respect data privacy and access control.
+
+
