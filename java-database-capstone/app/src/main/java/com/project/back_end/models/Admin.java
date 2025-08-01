@@ -1,4 +1,4 @@
-package com.project.back_end.models;
+package com.example.cms.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
