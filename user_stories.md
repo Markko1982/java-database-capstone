@@ -75,3 +75,93 @@ _As an administrator, I want to execute a stored procedure via MySQL CLI, so tha
 **Notes:**  
 - Procedure should not lock or impact performance.
 
+---
+
+**Title:**  
+_As a patient, I want to view a list of doctors without logging in, so that I can explore options before registering._
+
+**Acceptance Criteria:**  
+1. A public doctor directory must be accessible without authentication.  
+2. The list must include name, specialty, and availability.  
+3. A prompt to register should be shown when trying to book.
+
+**Priority:** Medium  
+**Story Points:** 3  
+**Notes:**  
+- Consider basic filtering (specialty, city).
+
+---
+
+**Title:**  
+_As a patient, I want to sign up using my email and password, so that I can book consultations._
+
+**Acceptance Criteria:**  
+1. A registration form must collect name, email, password.  
+2. Email must be validated and checked for uniqueness.  
+3. Password must be stored securely.
+
+**Priority:** High  
+**Story Points:** 3  
+**Notes:**  
+- Option to receive confirmation email.
+
+---
+
+**Title:**  
+_As a patient, I want to log in to the portal, so that I can manage my reservations._
+
+**Acceptance Criteria:**  
+1. A login page must authenticate user credentials.  
+2. Successful login should redirect to the dashboard.  
+3. Incorrect credentials must show an error message.
+
+**Priority:** High  
+**Story Points:** 2  
+**Notes:**  
+- Add “forgot password” option in future.
+
+---
+
+**Title:**  
+_As a patient, I want to log out from the portal, so that I can protect my account._
+
+**Acceptance Criteria:**  
+1. Logout option must be clearly visible.  
+2. Session must be ended and user redirected to login page.  
+3. Cached data should be cleared.
+
+**Priority:** Medium  
+**Story Points:** 2  
+**Notes:**  
+- Same behavior across devices.
+
+---
+
+**Title:**  
+_As a patient, I want to book a one-hour consultation after logging in, so that I can meet with a doctor._
+
+**Acceptance Criteria:**  
+1. Available time slots must be shown after login.  
+2. Booking form must confirm date/time and doctor.  
+3. Confirmation message must be shown after scheduling.
+
+**Priority:** High  
+**Story Points:** 5  
+**Notes:**  
+- Booking limits (e.g., 1 per day) can be added later.
+
+---
+
+**Title:**  
+_As a patient, I want to view my upcoming consultations, so that I can prepare for them properly._
+
+**Acceptance Criteria:**  
+1. Future bookings must be listed on the dashboard.  
+2. Each entry must include date, time, and doctor name.  
+3. Past consultations must not appear.
+
+**Priority:** Medium  
+**Story Points:** 3  
+**Notes:**  
+- Include option to cancel if within allowed time window.
+
