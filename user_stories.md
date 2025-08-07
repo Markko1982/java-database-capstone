@@ -185,6 +185,91 @@ Story Points: [A ser definido pela equipe]
 
 Notes: [A ser definido pela equipe]
 
+História de Usuário 1: Visualizar Calendário de Compromissos
+Título: Como um médico, eu quero visualizar meu calendário de compromissos para que eu possa me manter organizado e acompanhar minha agenda.
+
+Critérios de Aceitação:
+
+Dado que estou logado no meu painel, devo ver uma opção para acessar meu calendário.
+
+O calendário deve mostrar todos os meus compromissos agendados, identificando o paciente e o horário.
+
+Devo ser capaz de navegar entre diferentes dias, semanas e meses para visualizar compromissos passados e futuros.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
+História de Usuário 2: Marcar Indisponibilidade na Agenda
+Título: Como um médico, eu quero marcar minha indisponibilidade na agenda para que os pacientes vejam e agendem apenas nos horários em que estou disponível.
+
+Critérios de Aceitação:
+
+Dado que estou na minha agenda, devo ter uma funcionalidade para "Bloquear Horário".
+
+Devo poder selecionar um dia (ou vários) e um intervalo de horas para marcar como "indisponível".
+
+Uma vez que um horário é marcado como indisponível, ele não deve mais aparecer como uma opção para os pacientes agendarem consultas.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: Isso pode incluir bloqueios para almoço, férias ou outros compromissos pessoais.
+
+História de Usuário 3: Atualizar Perfil Profissional
+Título: Como um médico, eu quero atualizar meu perfil com especialização e informações de contato para que os pacientes tenham informações atualizadas e corretas sobre mim.
+
+Critérios de Aceitação:
+
+Dado que estou logado, devo ter acesso a uma área de "Editar Perfil".
+
+Nessa área, devo poder modificar campos como minha especialização, informações de contato e uma breve biografia.
+
+Depois de salvar, as alterações devem ser refletidas imediatamente no perfil público que os pacientes visualizam.
+
+Prioridade: Média
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
+História de Usuário 4: Visualizar Detalhes do Paciente Antes da Consulta
+Título: Como um médico, eu quero visualizar os detalhes dos pacientes com compromissos futuros para que eu possa me preparar para a consulta.
+
+Critérios de Aceitação:
+
+Dado que estou no meu calendário, ao clicar em um compromisso agendado, devo conseguir ver os detalhes do paciente associado.
+
+As informações podem incluir o nome do paciente, histórico de consultas anteriores ou motivo da consulta (se informado pelo paciente).
+
+O acesso a esses dados deve ser seguro e estar em conformidade com as leis de privacidade de dados.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
+História de Usuário 5: Login no Portal
+Título: Como um médico, eu quero fazer login no portal para que eu possa gerenciar meus compromissos e minha disponibilidade.
+
+Critérios de Aceitação:
+
+Dado que estou na página de login, posso inserir minhas credenciais (e-mail/CRM e senha) para acessar o sistema.
+
+Com as credenciais corretas, sou redirecionado para o meu painel de médico.
+
+Com credenciais incorretas, uma mensagem de erro é exibida.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
 Story Points: [A ser definido pela equipe]
 
 Notes: Esta história representa a necessidade do usuário. A implementação técnica (executar um stored procedure no MySQL) é um detalhe de como a história será construída, mas não precisa estar no título da história.
