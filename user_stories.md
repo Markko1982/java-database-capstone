@@ -96,6 +96,95 @@ Devo ter a opção de filtrar os dados por um período de tempo (ex: últimos 6 
 
 Prioridade: Média
 
+História de Usuário 1: Explorar Médicos sem Cadastro
+Título: Como um visitante, eu quero visualizar a lista de médicos sem fazer login para que eu possa explorar as opções antes de me registrar.
+
+Critérios de Aceitação:
+
+Dado que estou na página inicial do portal (sem login), devo conseguir acessar a lista de médicos.
+
+A lista deve exibir informações básicas de cada médico, como nome, foto e especialidade.
+
+Eu não devo ser forçado a criar uma conta ou fazer login para visualizar esta lista.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
+História de Usuário 2: Cadastro na Plataforma
+Título: Como um novo usuário, eu quero me inscrever usando meu e-mail e senha para que eu possa agendar consultas.
+
+Critérios de Aceitação:
+
+Dado que estou na página de cadastro, devo encontrar campos para inserir nome, e-mail e senha.
+
+Ao preencher os dados corretamente e submeter o formulário, minha conta de paciente deve ser criada.
+
+Após o cadastro, devo ser redirecionado para a página de login ou para o meu painel de paciente já autenticado.
+
+Se o e-mail que eu usar já estiver cadastrado, o sistema deve me informar com uma mensagem de erro clara.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
+História de Usuário 3: Agendar Consulta
+Título: Como um paciente, eu quero agendar uma consulta com um médico em um horário específico para que eu possa receber atendimento.
+
+Critérios de Aceitação:
+
+Dado que estou logado e na página de um médico, devo conseguir ver sua agenda com os horários disponíveis.
+
+Ao selecionar um horário vago, devo ser levado a uma tela de confirmação com os detalhes (médico, data, hora).
+
+Após confirmar, o horário deve ser reservado para mim e ficar indisponível para outros usuários.
+
+Devo receber uma notificação de sucesso confirmando o meu agendamento.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: Esta história engloba a necessidade de "fazer login e agendar".
+
+História de Usuário 4: Visualizar Consultas Futuras
+Título: Como um paciente, eu quero visualizar minhas consultas futuras para que eu possa me preparar adequadamente.
+
+Critérios de Aceitação:
+
+Dado que estou logado no meu painel, deve haver uma seção clara para "Minhas Consultas".
+
+Nesta seção, todas as minhas consultas futuras devem ser listadas em ordem de data.
+
+Cada consulta na lista deve exibir o nome do médico, a data e a hora.
+
+Prioridade: Média
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
+História de Usuário 5: Sair do Portal
+Título: Como um paciente, eu quero sair do portal (fazer logout) para que eu possa proteger minha conta e meus dados.
+
+Critérios de Aceitação:
+
+Dado que estou logado, devo encontrar um botão ou link de "Sair" em um local visível (ex: no menu do meu perfil).
+
+Ao clicar em "Sair", minha sessão deve ser finalizada imediatamente.
+
+Após sair, devo ser redirecionado para a página inicial ou para a página de login.
+
+Prioridade: Alta
+
+Story Points: [A ser definido pela equipe]
+
+Notes: [A ser definido pela equipe]
+
 Story Points: [A ser definido pela equipe]
 
 Notes: Esta história representa a necessidade do usuário. A implementação técnica (executar um stored procedure no MySQL) é um detalhe de como a história será construída, mas não precisa estar no título da história.
