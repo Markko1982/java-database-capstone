@@ -1,41 +1,75 @@
-/*
-Import the overlay function for booking appointments from loggedPatient.js
+// A palavra 'export' permite que esta função seja importada em outros arquivos
+export function createDoctorCard(doctor) {
+    const card = document.createElement("div");
+    card.classList.add("doctor-card");
+    card.dataset.id = doctor.id; // Armazena o ID do médico no próprio elemento
 
-  Import the deleteDoctor API function to remove doctors (admin role) from docotrServices.js
+    const role = localStorage.getItem("userRole");
 
-  Import function to fetch patient details (used during booking) from patientServices.js
+    // Seção de informações do médico
+    const infoDiv = document.createElement("div");
+    infoDiv.classList.add("doctor-info");
+    
+    const name = document.createElement("h3");
+    name.textContent = doctor.name;
 
-  Function to create and return a DOM element for a single doctor card
-    Create the main container for the doctor card
-    Retrieve the current user role from localStorage
-    Create a div to hold doctor information
-    Create and set the doctor’s name
-    Create and set the doctor's specialization
-    Create and set the doctor's email
-    Create and list available appointment times
-    Append all info elements to the doctor info container
-    Create a container for card action buttons
-    === ADMIN ROLE ACTIONS ===
-      Create a delete button
-      Add click handler for delete button
-     Get the admin token from localStorage
-        Call API to delete the doctor
-        Show result and remove card if successful
-      Add delete button to actions container
-   
-    === PATIENT (NOT LOGGED-IN) ROLE ACTIONS ===
-      Create a book now button
-      Alert patient to log in before booking
-      Add button to actions container
-  
-    === LOGGED-IN PATIENT ROLE ACTIONS === 
-      Create a book now button
-      Handle booking logic for logged-in patient   
-        Redirect if token not available
-        Fetch patient data with token
-        Show booking overlay UI with doctor and patient info
-      Add button to actions container
-   
-  Append doctor info and action buttons to the car
-  Return the complete doctor card element
-*/
+    const specialization = document.createElement("p");
+    specialization.textContent = `Especialidade: ${doctor.specialty}`;
+    
+    const email = document.createElement("p");
+    email.textContent = `Email: ${doctor.email}`;
+    
+    const availability = document.createElement("p");
+    // O backend deve fornecer 'availableTimes' como um array de strings
+    availability.textContent = `Horários: ${doctor.availableTimes ? doctor.availableTimes.join(", ") : "N/A"}`;
+
+    infoDiv.appendChild(name);
+    infoDiv.appendChild(specialization);
+    infoDiv.appendChild(email);
+    infoDiv.appendChild(availability);
+
+    // Seção de ações (botões)
+    const actionsDiv = document.createElement("div");
+    actionsDiv.classList.add("card-actions");
+
+    // Adiciona botões com base no papel do usuário
+    if (role === "admin") {
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "Excluir";
+        removeBtn.addEventListener("click", async () => {
+            if (confirm(`Tem certeza que deseja excluir o(a) Dr(a). ${doctor.name}?`)) {
+                // A lógica para chamar a API de exclusão virá aqui
+                console.log(`Excluindo médico com ID: ${doctor.id}`);
+                // Ex: await deleteDoctor(doctor.id);
+                card.remove(); // Remove o card da tela
+            }
+        });
+        actionsDiv.appendChild(removeBtn);
+    } else if (role === "loggedPatient") {
+        const bookNowBtn = document.createElement("button");
+        bookNowBtn.textContent = "Agendar Consulta";
+        bookNowBtn.addEventListener("click", (e) => {
+            // A lógica para abrir o modal de agendamento virá aqui
+            console.log(`Agendando com o médico: ${doctor.name}`);
+            // Ex: const patientData = await getPatientData(token);
+            //     showBookingOverlay(e, doctor, patientData);
+        });
+        actionsDiv.appendChild(bookNowBtn);
+    } else if (role === "patient") {
+        const bookNowBtn = document.createElement("button");
+        bookNowBtn.textContent = "Agendar Consulta";
+        bookNowBtn.addEventListener("click", () => {
+            alert("Por favor, faça login para agendar uma consulta.");
+            // Pode também abrir o modal de login aqui
+        });
+        actionsDiv.appendChild(bookNowBtn);
+    }
+    
+    card.appendChild(infoDiv);
+    // Só adiciona a div de ações se ela tiver algum botão dentro
+    if (actionsDiv.hasChildNodes()) {
+        card.appendChild(actionsDiv);
+    }
+
+    return card;
+}
