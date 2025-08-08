@@ -1,54 +1,79 @@
-/*
-  Import getAllAppointments to fetch appointments from the backend
-  Import createPatientRow to generate a table row for each patient appointment
+import { getPatientAppointments } from './patientServices.js'; 
+import { createPatientRow } from '../components/patientRows.js'; 
 
+// Variáveis de estado para o painel
+let selectedDate = new Date().toISOString().split('T')[0]; // Data de hoje no formato YYYY-MM-DD
+let patientName = null;
+const token = localStorage.getItem('token');
+const doctorId = localStorage.getItem('userId'); // Supondo que o ID do usuário logado é salvo aqui
 
-  Get the table body where patient rows will be added
-  Initialize selectedDate with today's date in 'YYYY-MM-DD' format
-  Get the saved token from localStorage (used for authenticated API calls)
-  Initialize patientName to null (used for filtering by name)
+document.addEventListener("DOMContentLoaded", () => {
+    // Referências aos elementos do DOM
+    const tableBody = document.getElementById("patientTableBody");
+    const searchBar = document.getElementById("searchBar");
+    const todayButton = document.getElementById("todayAppointmentsBtn");
+    const datePicker = document.getElementById("dateFilter");
 
+    // Define o valor inicial do date picker para hoje
+    datePicker.value = selectedDate;
 
-  Add an 'input' event listener to the search bar
-  On each keystroke:
-    - Trim and check the input value
-    - If not empty, use it as the patientName for filtering
-    - Else, reset patientName to "null" (as expected by backend)
-    - Reload the appointments list with the updated filter
+    // Configura os listeners de evento
+    searchBar.addEventListener('input', (e) => {
+        patientName = e.target.value.trim() === '' ? null : e.target.value.trim();
+        loadAppointments();
+    });
 
+    todayButton.addEventListener('click', () => {
+        selectedDate = new Date().toISOString().split('T')[0];
+        datePicker.value = selectedDate;
+        loadAppointments();
+    });
 
-  Add a click listener to the "Today" button
-  When clicked:
-    - Set selectedDate to today's date
-    - Update the date picker UI to match
-    - Reload the appointments for today
+    datePicker.addEventListener('change', (e) => {
+        selectedDate = e.target.value;
+        loadAppointments();
+    });
 
+    // Função para carregar as consultas
+    async function loadAppointments() {
+        if (!token || !doctorId) {
+            tableBody.innerHTML = `<tr><td colspan="5">Erro: Sessão inválida ou ID do médico não encontrado.</td></tr>`;
+            return;
+        }
 
-  Add a change event listener to the date picker
-  When the date changes:
-    - Update selectedDate with the new value
-    - Reload the appointments for that specific date
+        tableBody.innerHTML = `<tr><td colspan="5">Carregando...</td></tr>`;
 
+        try {
+            // A API para buscar consultas de um médico ainda não foi definida, usaremos um placeholder
+            // A função 'getPatientAppointments' provavelmente precisará ser ajustada ou uma nova criada
+            const appointments = await getDoctorAppointments(selectedDate, patientName, token, doctorId);
+            
+            tableBody.innerHTML = ""; // Limpa a tabela
 
-  Function: loadAppointments
-  Purpose: Fetch and display appointments based on selected date and optional patient name
+            if (!appointments || appointments.length === 0) {
+                document.getElementById('noPatientRecord').style.display = 'block';
+            } else {
+                document.getElementById('noPatientRecord').style.display = 'none';
+                appointments.forEach(appointment => {
+                    const row = createPatientRow(appointment.patient); // Supondo que cada consulta tem um objeto paciente
+                    tableBody.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error("Erro ao carregar consultas:", error);
+            tableBody.innerHTML = `<tr><td colspan="5">Falha ao carregar as consultas.</td></tr>`;
+        }
+    }
 
-  Step 1: Call getAllAppointments with selectedDate, patientName, and token
-  Step 2: Clear the table body content before rendering new rows
+    // Carrega as consultas iniciais (de hoje)
+    loadAppointments();
+});
 
-  Step 3: If no appointments are returned:
-    - Display a message row: "No Appointments found for today."
-
-  Step 4: If appointments exist:
-    - Loop through each appointment and construct a 'patient' object with id, name, phone, and email
-    - Call createPatientRow to generate a table row for the appointment
-    - Append each row to the table body
-
-  Step 5: Catch and handle any errors during fetch:
-    - Show a message row: "Error loading appointments. Try again later."
-
-
-  When the page is fully loaded (DOMContentLoaded):
-    - Call renderContent() (assumes it sets up the UI layout)
-    - Call loadAppointments() to display today's appointments by default
-*/
+// Função placeholder para buscar consultas do médico, pois a original era para pacientes
+async function getDoctorAppointments(date, patientName, token, doctorId) {
+    // Esta função precisaria de um endpoint de API específico no backend
+    console.log(`Buscando consultas para o médico ${doctorId} na data ${date}`);
+    // Exemplo de como a chamada de API poderia ser:
+    // const response = await fetch(`${API_BASE_URL}/doctor/${doctorId}/appointments?date=${date}&patientName=${patientName}`, { headers: ... });
+    return []; // Retornando vazio por enquanto
+}

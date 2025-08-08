@@ -1,97 +1,107 @@
-// patientServices
 import { API_BASE_URL } from "../config/config.js";
-const PATIENT_API = API_BASE_URL + '/patient'
 
+const PATIENT_API = API_BASE_URL + '/patient';
 
-//For creating a patient in db
+/**
+ * Registra um novo paciente.
+ * @param {Object} data - Dados do paciente (nome, email, senha, etc.).
+ * @returns {Promise<Object>} Um objeto indicando sucesso ou falha.
+ */
 export async function patientSignup(data) {
-  try {
-    const response = await fetch(`${PATIENT_API}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json"
-        },
-        body: JSON.stringify(data)
-      }
-    );
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.message);
+    try {
+        const response = await fetch(`${PATIENT_API}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (response.ok) {
+            return { success: true, message: result.message };
+        } else {
+            return { success: false, message: result.message || 'Falha no cadastro.' };
+        }
+    } catch (error) {
+        console.error("Erro em patientSignup:", error);
+        return { success: false, message: 'Erro de conexão.' };
     }
-    return { success: response.ok, message: result.message }
-  }
-  catch (error) {
-    console.error("Error :: patientSignup :: ", error)
-    return { success: false, message: error.message }
-  }
 }
 
-//For logging in patient
+/**
+ * Realiza o login de um paciente.
+ * @param {Object} data - Credenciais de login (email, senha).
+ * @returns {Promise<Response>} A resposta completa da fetch para análise no frontend.
+ */
 export async function patientLogin(data) {
-  console.log("patientLogin :: ", data)
-  return await fetch(`${PATIENT_API}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  });
-
-
-}
-
-// For getting patient data (name ,id , etc ). Used in booking appointments
-export async function getPatientData(token) {
-  try {
-    const response = await fetch(`${PATIENT_API}/${token}`);
-    const data = await response.json();
-    if (response.ok) return data.patient;
-    return null;
-  } catch (error) {
-    console.error("Error fetching patient details:", error);
-    return null;
-  }
-}
-
-// the Backend API for fetching the patient record(visible in Doctor Dashboard) and Appointments (visible in Patient Dashboard) are same based on user(patient/doctor).
-export async function getPatientAppointments(id, token, user) {
-  try {
-    const response = await fetch(`${PATIENT_API}/${id}/${user}/${token}`);
-    const data = await response.json();
-    console.log(data.appointments)
-    if (response.ok) {
-      return data.appointments;
-    }
-    return null;
-  }
-  catch (error) {
-    console.error("Error fetching patient details:", error);
-    return null;
-  }
-}
-
-export async function filterAppointments(condition, name, token) {
-  try {
-    const response = await fetch(`${PATIENT_API}/filter/${condition}/${name}/${token}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    // Retorna a promessa da fetch diretamente para que a lógica de UI possa lidar com a resposta
+    console.log("Enviando dados de login do paciente:", data);
+    return fetch(`${PATIENT_API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
     });
+}
 
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-
-    } else {
-      console.error("Failed to fetch doctors:", response.statusText);
-      return { appointments: [] };
-
+/**
+ * Busca os dados do paciente logado usando um token.
+ * @param {string} token - O token de autenticação.
+ * @returns {Promise<Object|null>} O objeto do paciente ou null em caso de erro.
+ */
+export async function getPatientData(token) {
+    try {
+        const response = await fetch(`${PATIENT_API}/profile`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Falha ao buscar dados do paciente.');
+        return await response.json();
+    } catch (error) {
+        console.error("Erro em getPatientData:", error);
+        return null;
     }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Something went wrong!");
-    return { appointments: [] };
-  }
+}
+
+/**
+ * Busca as consultas de um paciente ou as consultas de um médico.
+ * @param {string} id - O ID do paciente ou do médico.
+ * @param {string} token - O token de autenticação.
+ * @param {string} user - O papel do usuário ('patient' ou 'doctor').
+ * @returns {Promise<Array|null>} Uma lista de consultas ou null em caso de erro.
+ */
+export async function getPatientAppointments(id, token, user) {
+    // Constrói a URL dinamicamente com base no papel do usuário
+    const url = user === 'doctor' 
+        ? `${API_BASE_URL}/doctor/${id}/appointments` 
+        : `${PATIENT_API}/${id}/appointments`;
+
+    try {
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Falha ao buscar consultas.');
+        return await response.json();
+    } catch (error) {
+        console.error("Erro em getPatientAppointments:", error);
+        return null;
+    }
+}
+
+/**
+ * Filtra consultas com base em uma condição e nome.
+ * @param {string} condition - A condição de filtro (ex: 'pending').
+ * @param {string} name - O nome para buscar.
+ * @param {string} token - O token de autenticação.
+ * @returns {Promise<Array>} Uma lista de consultas filtradas.
+ */
+export async function filterAppointments(condition, name, token) {
+    try {
+        const queryParams = new URLSearchParams({ condition, name });
+        const response = await fetch(`${PATIENT_API}/appointments/filter?${queryParams}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Erro ao filtrar consultas.');
+        return await response.json();
+    } catch (error) {
+        console.error("Erro em filterAppointments:", error);
+        alert('Ocorreu um erro inesperado ao filtrar as consultas.');
+        return [];
+    }
 }
