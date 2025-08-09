@@ -1,38 +1,34 @@
-function renderFooter() {
-    const footerDiv = document.getElementById("footer");
-    if (!footerDiv) return;
+// src/main/resources/static/js/components/footer.js
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('footer');
+  if (!el) return;
 
-    footerDiv.innerHTML = `
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-logo">
-                <img src="/assets/images/logo.png" alt="Logo da Clínica" />
-                <p>&copy; ${new Date().getFullYear()} Clínica Skynet. Todos os direitos reservados.</p>
-            </div>
-            <div class="footer-links">
-                <div class="footer-column">
-                    <h4>Empresa</h4>
-                    <a href="#">Sobre Nós</a>
-                    <a href="#">Carreiras</a>
-                    <a href="#">Imprensa</a>
-                </div>
-                <div class="footer-column">
-                    <h4>Suporte</h4>
-                    <a href="#">Sua Conta</a>
-                    <a href="#">Central de Ajuda</a>
-                    <a href="#">Contato</a>
-                </div>
-                <div class="footer-column">
-                    <h4>Legal</h4>
-                    <a href="#">Termos de Serviço</a>
-                    <a href="#">Política de Privacidade</a>
-                    <a href="#">Licenciamento</a>
-                </div>
-            </div>
+  const year = new Date().getFullYear();
+  el.innerHTML = `
+    <footer class="site-footer">
+      <div class="container footer-container">
+        <div class="footer-brand">
+          <img src="/images/logo/logo.png" alt="Logo da Clínica" height="28" />
         </div>
+        <div class="footer-cols">
+          <div>
+            <h4>Empresa</h4>
+            <a href="#">Sobre Nós</a><br/>
+            <a href="#">Carreiras</a>
+          </div>
+          <div>
+            <h4>Suporte</h4>
+            <a href="#">Sua Conta</a><br/>
+            <a href="#">Central de Ajuda</a>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <a href="#">Termos de Serviço</a><br/>
+            <a href="#">Política de Privacidade</a>
+          </div>
+        </div>
+        <div class="copy">© ${year} Clínica Skynet. Todos os direitos reservados.</div>
+      </div>
     </footer>
-    `;
-}
-
-// Chama a função para renderizar o rodapé
-renderFooter();
+  `;
+});
