@@ -1,61 +1,31 @@
 package com.project.back_end.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-/**
- * Representa a entidade 'Appointment' (Agendamento) no banco de dados.
- * Esta classe conecta as entidades Doctor e Patient e armazena informações
- * sobre a consulta.
- */
 @Entity
+@Table(name = "appointments")
 public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * O médico associado a este agendamento.
-     * @ManyToOne: Muitos agendamentos podem pertencer a UM médico.
-     * @JoinColumn: Especifica a coluna de chave estrangeira (doctor_id) na tabela de agendamentos.
-     */
     @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = false)
-    @NotNull(message = "O médico é obrigatório")
     private Doctor doctor;
 
-    /**
-     * O paciente associado a este agendamento.
-     * @ManyToOne: Muitos agendamentos podem pertencer a UM paciente.
-     * @JoinColumn: Especifica a coluna de chave estrangeira (patient_id) na tabela de agendamentos.
-     */
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
-    @NotNull(message = "O paciente é obrigatório")
     private Patient patient;
 
-    /**
-     * A data e hora do agendamento.
-     * @Future: Garante que a data e hora do agendamento devem estar no futuro.
-     */
-    @NotNull(message = "A data e hora do agendamento são obrigatórias")
-    @Future(message = "A data do agendamento deve ser no futuro")
+    @Column(name = "appointment_time", nullable = false)
     private LocalDateTime appointmentTime;
 
-    /**
-     * O status do agendamento (ex: "Scheduled", "Completed", "Canceled").
-     */
-    @NotNull(message = "O status é obrigatório")
+    @Column(nullable = false)
     private String status;
-
-    // Construtor padrão exigido pelo JPA
-    public Appointment() {
-    }
 
     // Getters e Setters para os campos persistidos
     public Long getId() {
@@ -102,8 +72,6 @@ public class Appointment {
 
     /**
      * Retorna apenas a parte da DATA do agendamento.
-     * @Transient: Informa ao JPA para ignorar este método durante o mapeamento do banco de dados.
-     * @return A data do agendamento.
      */
     @Transient
     public LocalDate getAppointmentDate() {
@@ -112,11 +80,25 @@ public class Appointment {
 
     /**
      * Retorna apenas a parte da HORA do agendamento.
-     * @Transient: Informa ao JPA para ignorar este método.
-     * @return A hora do agendamento.
      */
     @Transient
     public LocalTime getAppointmentTimeOnly() {
         return (this.appointmentTime != null) ? this.appointmentTime.toLocalTime() : null;
+    }
+
+    /**
+     * Retorna o ID do médico associado a este agendamento.
+     */
+    @Transient
+    public Long getDoctorId() {
+        return (this.doctor != null) ? this.doctor.getId() : null;
+    }
+
+    /**
+     * Retorna o ID do paciente associado a este agendamento.
+     */
+    @Transient
+    public Long getPatientId() {
+        return (this.patient != null) ? this.patient.getId() : null;
     }
 }
