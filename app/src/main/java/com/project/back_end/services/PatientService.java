@@ -52,7 +52,9 @@ public class PatientService {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
             }
 
-            List<Appointment> appts = appointmentRepository.findByPatientId(id);
+            // LINHA CORRIGIDA ABAIXO
+            List<Appointment> appts = appointmentRepository.findByPatient_Id(id);
+            
             res.put("appointments", toDTOs(appts));
             return ResponseEntity.ok(res);
         } catch (Exception e) {
@@ -151,8 +153,8 @@ public class PatientService {
         String patientEmail = (p != null ? p.getEmail() : null);
         String patientPhone = (p != null ? p.getPhone() : null);
         String patientAddress = (p != null ? p.getAddress() : null);
-
-        int statusInt = (a.getStatus() != null && a.getStatus().equalsIgnoreCase("PAST")) ? 1 : 0;
+        
+        int statusInt = (a.getStatus() != null) ? a.getStatus() : 0;
 
         return new AppointmentDTO(
                 a.getId(),

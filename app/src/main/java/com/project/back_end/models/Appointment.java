@@ -25,7 +25,7 @@ public class Appointment {
     private LocalDateTime appointmentTime;
 
     @Column(nullable = false)
-    private String status;
+    private Integer status;
 
     // Getters e Setters para os campos persistidos
     public Long getId() {
@@ -60,11 +60,11 @@ public class Appointment {
         this.appointmentTime = appointmentTime;
     }
 
-    public String getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 

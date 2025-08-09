@@ -73,7 +73,8 @@ public class DoctorService {
     public int deleteDoctor(long id) {
         try {
             if (doctorRepository.findById(id).isEmpty()) return -1;
-            appointmentRepository.deleteAllByDoctorId(id);
+            // LINHA CORRIGIDA ABAIXO
+            appointmentRepository.deleteAllByDoctor_Id(id);
             doctorRepository.deleteById(id);
             return 1;
         } catch (Exception e) {

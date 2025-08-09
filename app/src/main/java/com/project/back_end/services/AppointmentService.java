@@ -147,7 +147,8 @@ public class AppointmentService {
                         patientPhone,
                         patientAddress,
                         a.getAppointmentTime(),
-                        (a.getStatus() != null ? (a.getStatus().equalsIgnoreCase("PAST") ? 1 : 0) : 0)
+                        // LINHA CORRIGIDA ABAIXO
+                        (a.getStatus() != null ? a.getStatus() : 0)
                 );
                 dtos.add(dto);
             }
