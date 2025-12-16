@@ -3,9 +3,10 @@ package com.project.back_end.services;
 import com.project.back_end.models.Admin;
 import com.project.back_end.models.Doctor;
 import com.project.back_end.models.Patient;
-import com.project.back_end.repo.AdminRepository;
-import com.project.back_end.repo.DoctorRepository;
-import com.project.back_end.repo.PatientRepository;
+import com.project.back_end.repo.jpa.AdminRepository;
+import com.project.back_end.repo.jpa.DoctorRepository;
+import com.project.back_end.repo.jpa.PatientRepository;
+
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -4,9 +4,9 @@ import com.project.back_end.dto.AppointmentDTO;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.models.Doctor;
 import com.project.back_end.models.Patient;
-import com.project.back_end.repo.AppointmentRepository;
-import com.project.back_end.repo.DoctorRepository;
-import com.project.back_end.repo.PatientRepository;
+import com.project.back_end.repo.jpa.AppointmentRepository;
+import com.project.back_end.repo.jpa.DoctorRepository;
+import com.project.back_end.repo.jpa.PatientRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

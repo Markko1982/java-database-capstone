@@ -1,4 +1,5 @@
-package com.project.back_end.repo;
+package com.project.back_end.repo.jpa;
+
 
 import com.project.back_end.models.Patient;
 import org.springframework.data.jpa.repository.JpaRepository;
