@@ -1,4 +1,5 @@
-package com.project.back_end.repo;
+package com.project.back_end.repo.mongo;
+
 
 import com.project.back_end.models.Prescription;
 import org.springframework.data.mongodb.repository.MongoRepository;

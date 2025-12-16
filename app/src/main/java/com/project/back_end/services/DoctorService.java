@@ -2,8 +2,8 @@ package com.project.back_end.services;
 
 import com.project.back_end.dto.Login;
 import com.project.back_end.models.Doctor;
-import com.project.back_end.repo.AppointmentRepository;
-import com.project.back_end.repo.DoctorRepository;
+import com.project.back_end.repo.jpa.AppointmentRepository;
+import com.project.back_end.repo.jpa.DoctorRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

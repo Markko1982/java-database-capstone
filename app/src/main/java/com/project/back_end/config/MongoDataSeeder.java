@@ -1,7 +1,7 @@
 package com.project.back_end.config;
 
 import com.project.back_end.models.Prescription;
-import com.project.back_end.repo.PrescriptionRepository;
+import com.project.back_end.repo.mongo.PrescriptionRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
