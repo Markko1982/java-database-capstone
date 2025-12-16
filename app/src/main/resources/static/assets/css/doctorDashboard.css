@@ -1,0 +1,49 @@
+#patientTable {
+    width: 90%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+#patientTable thead {
+    background-color: #333;
+    color: white;
+}
+
+#patientTable th, #patientTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#patientTable tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#patientTable tbody tr:hover {
+    background-color: #e2f1f1;
+}
+
+.prescription-btn {
+    padding: 8px 12px;
+    background-color: #017d7e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.prescription-btn:hover {
+    background-color: #015c5d;
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.noPatientRecord {
+    text-align: center;
+    margin-top: 20px;
+    font-style: italic;
+    color: #888;
+}
