@@ -4,6 +4,9 @@ import com.project.back_end.dto.Login;
 import com.project.back_end.models.Doctor;
 import com.project.back_end.services.DoctorService;
 import com.project.back_end.services.Service;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,7 +77,7 @@ public class DoctorController {
 
     // 4) Login do médico
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> doctorLogin(@RequestBody Login login) {
+    public ResponseEntity<Map<String, String>> doctorLogin(@Valid @RequestBody Login login) {
         return doctorService.validateDoctor(login);
     }
 

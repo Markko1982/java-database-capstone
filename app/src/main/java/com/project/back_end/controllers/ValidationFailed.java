@@ -13,16 +13,21 @@ import java.util.Map;
 @RestControllerAdvice
 public class ValidationFailed {
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        
-        // Iterate through all the validation errors
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            String errorMessage = error.getDefaultMessage();
-            errors.put("message", "" + errorMessage);
-        }
+@ExceptionHandler(MethodArgumentNotValidException.class)
+public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
+    Map<String, String> fieldErrors = new HashMap<>();
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+        // se vier erro repetido no mesmo campo, mantém o primeiro (geralmente o mais útil)
+        fieldErrors.putIfAbsent(error.getField(), error.getDefaultMessage());
     }
+
+    Map<String, Object> body = new HashMap<>();
+    body.put("status", HttpStatus.BAD_REQUEST.value());
+    body.put("error", "Validation Failed");
+    body.put("fields", fieldErrors);
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+}
+
 }
