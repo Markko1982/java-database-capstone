@@ -26,7 +26,8 @@ public class TokenService {
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
 
-    @Value("${jwt.secret:change-me-in-application-properties}")
+   @Value("${jwt.secret}")
+
     private String secret;
 
     private static final long EXPIRATION_MS = 7L * 24 * 60 * 60 * 1000;
