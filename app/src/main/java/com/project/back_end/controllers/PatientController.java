@@ -7,6 +7,8 @@ import com.project.back_end.services.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +57,7 @@ public class PatientController {
 
     // 3) Login do paciente
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> patientLogin(@RequestBody Login login) {
+    public ResponseEntity<Map<String, String>> patientLogin(@Valid @RequestBody Login login) {
         return service.validatePatientLogin(login);
     }
 
