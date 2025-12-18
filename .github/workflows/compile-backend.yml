@@ -1,3 +1,15 @@
+name: Compile Backend (Maven)
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+env:
+  BACKEND_PATH: "app"
+
 jobs:
   build:
     runs-on: ubuntu-latest
