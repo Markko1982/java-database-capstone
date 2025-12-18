@@ -17,3 +17,11 @@ Este projeto utiliza perfis do Spring para separar configurações de ambiente:
 Rodar localmente:
 ```bash
 SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
+
+## Variáveis de ambiente (.env)
+
+Este repositório usa variáveis de ambiente para segredos e credenciais locais.
+Copie o arquivo de exemplo e ajuste conforme necessário:
+
+```bash
+cp .env.example .env

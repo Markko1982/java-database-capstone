@@ -1,11 +1,14 @@
 services:
   mysql:
     image: mysql:8.0
+    env_file:
+      - .env
     environment:
-      MYSQL_DATABASE: cms
-      MYSQL_USER: cms
-      MYSQL_PASSWORD: cms
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-cms}
+      MYSQL_USER: ${MYSQL_USER:-cms}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-cms}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+
     ports:
       - "3306:3306"
     volumes:
