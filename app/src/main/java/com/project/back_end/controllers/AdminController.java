@@ -4,6 +4,8 @@ import com.project.back_end.models.Admin;
 import com.project.back_end.services.Service;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+
 
 import java.util.Map;
 
@@ -18,7 +20,8 @@ public class AdminController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> adminLogin(@RequestBody Admin receivedAdmin) {
-        return service.validateAdmin(receivedAdmin);
-    }
+    public ResponseEntity<Map<String, String>> adminLogin(@Valid @RequestBody Admin receivedAdmin) {
+    return service.validateAdmin(receivedAdmin);
+}
+
 }
