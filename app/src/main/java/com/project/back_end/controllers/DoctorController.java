@@ -57,7 +57,7 @@ public class DoctorController {
     // 3) Adicionar novo médico (somente admin)
     @PostMapping("/{token}")
     public ResponseEntity<Map<String, String>> addDoctor(@PathVariable String token,
-                                                         @RequestBody Doctor doctor) {
+                                                         @Valid @RequestBody Doctor doctor) {
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "admin");
         if (!tokenCheck.getStatusCode().is2xxSuccessful()) return tokenCheck;
 
@@ -84,7 +84,7 @@ public class DoctorController {
     // 5) Atualizar médico (somente admin)
     @PutMapping("/{token}")
     public ResponseEntity<Map<String, String>> updateDoctor(@PathVariable String token,
-                                                            @RequestBody Doctor doctor) {
+                                                            @Valid @RequestBody Doctor doctor) {
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "admin");
         if (!tokenCheck.getStatusCode().is2xxSuccessful()) return tokenCheck;
 
