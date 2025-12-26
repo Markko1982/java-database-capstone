@@ -46,18 +46,35 @@ public class AppointmentService {
     }
 
     // 2) Atualizar
-    public ResponseEntity<Map<String, String>> updateAppointment(Appointment appointment) {
+   
+    public ResponseEntity<Map<String, String>> updateAppointment(Appointment appointment, String token) {
         Map<String, String> body = new HashMap<>();
         try {
-            if (appointment.getId() == null) {
+            if (appointment == null || appointment.getId() == null) {
                 body.put("message", "ID de agendamento é obrigatório.");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
             }
-            Optional<Appointment> existing = appointmentRepository.findById(appointment.getId());
-            if (existing.isEmpty()) {
+
+            Optional<Appointment> existingOpt = appointmentRepository.findById(appointment.getId());
+            if (existingOpt.isEmpty()) {
                 body.put("message", "Agendamento não encontrado.");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
             }
+
+            Appointment existing = existingOpt.get();
+
+            // ✅ ownership: só o paciente dono pode atualizar
+            String email = tokenService.getEmailFromToken(token);
+            Patient requester = patientRepository.findByEmail(email);
+            if (requester == null
+                    || existing.getPatient() == null
+                    || !Objects.equals(existing.getPatient().getId(), requester.getId())) {
+                body.put("message", "Não autorizado a atualizar este agendamento.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+            }
+
+            // ✅ força o patient correto mesmo se payload vier sem patient (ou tentar trocar)
+            appointment.setPatient(existing.getPatient());
 
             int valid = service.validateAppointment(appointment);
             if (valid == -1) {
@@ -72,11 +89,13 @@ public class AppointmentService {
             appointmentRepository.save(appointment);
             body.put("message", "Agendamento atualizado.");
             return ResponseEntity.ok(body);
+
         } catch (Exception e) {
             body.put("message", "Erro ao atualizar agendamento.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
         }
     }
+
 
     // 3) Cancelar
     public ResponseEntity<Map<String, String>> cancelAppointment(long id, String token) {
