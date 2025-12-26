@@ -82,7 +82,7 @@ public class AppointmentController {
         if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
             return tokenCheck;
         }
-        return appointmentService.updateAppointment(appointment);
+        return appointmentService.updateAppointment(appointment, token);
     }
 
     // DELETE /appointments/{id}/{token}
