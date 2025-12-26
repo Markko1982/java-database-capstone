@@ -45,12 +45,24 @@ public class PatientService {
     public ResponseEntity<Map<String, Object>> getPatientAppointment(Long id, String token) {
         Map<String, Object> res = new HashMap<>();
         try {
-            String email = tokenService.getEmailFromToken(token);
-            Patient pFromToken = patientRepository.findByEmail(email);
-            if (pFromToken == null || !Objects.equals(pFromToken.getId(), id)) {
-                res.put("message", "Não autorizado.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
-            }
+            if (!tokenService.validateToken(token, "patient")) {
+        res.put("message", "Token inválido ou expirado.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
+    }
+
+    String email = tokenService.getEmailFromToken(token);
+    Patient pFromToken = patientRepository.findByEmail(email);
+
+    if (pFromToken == null) {
+        res.put("message", "Token inválido ou expirado.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
+    }
+
+    if (!Objects.equals(pFromToken.getId(), id)) {
+        res.put("message", "Acesso negado.");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
+    }
+
 
             // LINHA CORRIGIDA ABAIXO
             List<Appointment> appts = appointmentRepository.findByPatient_Id(id);

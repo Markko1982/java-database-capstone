@@ -70,7 +70,7 @@ public class AppointmentService {
                     || existing.getPatient() == null
                     || !Objects.equals(existing.getPatient().getId(), requester.getId())) {
                 body.put("message", "Não autorizado a atualizar este agendamento.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
             }
 
             // ✅ força o patient correto mesmo se payload vier sem patient (ou tentar trocar)
@@ -111,8 +111,8 @@ public class AppointmentService {
             String email = tokenService.getEmailFromToken(token);
             Patient requester = patientRepository.findByEmail(email);
             if (requester == null || appt.getPatient() == null || !Objects.equals(appt.getPatient().getId(), requester.getId())) {
-                body.put("message", "Não autorizado a cancelar este agendamento.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+                body.put("message", "Acesso negado.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
             }
 
             appointmentRepository.delete(appt);
