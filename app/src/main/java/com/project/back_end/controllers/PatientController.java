@@ -36,7 +36,7 @@ public class PatientController {
 
     // 2) Criar novo paciente
     @PostMapping
-    public ResponseEntity<Map<String, String>> createPatient(@RequestBody Patient patient) {
+    public ResponseEntity<Map<String, String>> createPatient(@Valid @RequestBody Patient patient) {
         Map<String, String> body = new HashMap<>();
 
         boolean okToCreate = service.validatePatient(patient);
