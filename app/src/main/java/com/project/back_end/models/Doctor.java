@@ -3,7 +3,7 @@ package com.project.back_end.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -20,24 +20,24 @@ public class Doctor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "O nome é obrigatório")
+    @NotBlank(message = "O nome é obrigatório")
     @Size(min = 3, max = 100, message = "O nome deve ter entre 3 e 100 caracteres")
     private String name;
 
-    @NotNull(message = "A especialidade é obrigatória")
+    @NotBlank(message = "A especialidade é obrigatória")
     @Size(min = 3, max = 50, message = "A especialidade deve ter entre 3 e 50 caracteres")
     private String specialty;
 
-    @NotNull(message = "O e-mail é obrigatório")
+    @NotBlank(message = "O e-mail é obrigatório")
     @Email(message = "Forneça um endereço de e-mail válido")
     private String email;
 
-    @NotNull(message = "A senha é obrigatória")
+    @NotBlank(message = "A senha é obrigatória")
     @Size(min = 6, message = "A senha deve ter pelo menos 6 caracteres")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @NotNull(message = "O telefone é obrigatório")
+    @NotBlank(message = "O telefone é obrigatório")
     @Pattern(regexp = "\\d{10}", message = "O número de telefone deve ter 10 dígitos")
     private String phone;
 
