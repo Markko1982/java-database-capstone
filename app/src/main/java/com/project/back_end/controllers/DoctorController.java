@@ -64,13 +64,13 @@ public class DoctorController {
         Map<String, String> body = new HashMap<>();
         int result = doctorService.saveDoctor(doctor);
         if (result == 1) {
-            body.put("message", "Médico adicionado ao db");
+            body.put("message", "Médico cadastrado com sucesso.");
             return ResponseEntity.status(HttpStatus.CREATED).body(body);
         } else if (result == -1) {
-            body.put("message", "Médico já existe");
+            body.put("message", "Médico já cadastrado.");
             return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
         } else {
-            body.put("message", "Ocorreu algum erro interno");
+            body.put("message", "Erro interno do servidor.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
         }
     }
