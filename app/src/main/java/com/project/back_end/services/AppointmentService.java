@@ -36,6 +36,26 @@ public class AppointmentService {
     }
 
     // 1) Reservar
+        // 1) Reservar (seguro: paciente vem do token)
+    public int bookAppointment(Appointment appointment, String token) {
+        try {
+            String email = tokenService.getEmailFromToken(token);
+            if (email == null) return -1;
+
+            Patient patient = patientRepository.findByEmail(email);
+            if (patient == null) return -1;
+
+            // ignora qualquer patient vindo do payload (evita overposting)
+            appointment.setPatient(patient);
+
+            appointmentRepository.save(appointment);
+            return 1;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    
     public int bookAppointment(Appointment appointment) {
         try {
             appointmentRepository.save(appointment);

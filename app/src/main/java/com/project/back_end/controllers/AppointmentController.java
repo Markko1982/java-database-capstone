@@ -63,7 +63,7 @@ public class AppointmentController {
         }
 
         // Reserva
-        int saved = appointmentService.bookAppointment(appointment);
+        int saved = appointmentService.bookAppointment(appointment, token);
         if (saved == 1) {
             body.put("message", "Agendamento criado com sucesso.");
             return ResponseEntity.status(HttpStatus.CREATED).body(body);
