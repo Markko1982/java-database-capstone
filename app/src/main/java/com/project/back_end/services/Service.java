@@ -150,7 +150,7 @@ public class Service {
             String email = tokenService.getEmailFromToken(token);
             if (email == null) {
                 Map<String, Object> err = new HashMap<>();
-                err.put("message", "Token inválido.");
+                err.put("message", "Token inválido ou expirado.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
             }
             Patient p = patientRepository.findByEmail(email);
