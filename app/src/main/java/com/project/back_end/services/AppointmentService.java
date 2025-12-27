@@ -69,7 +69,7 @@ public class AppointmentService {
             if (requester == null
                     || existing.getPatient() == null
                     || !Objects.equals(existing.getPatient().getId(), requester.getId())) {
-                body.put("message", "Não autorizado a atualizar este agendamento.");
+                body.put("message", "Acesso negado.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
             }
 
