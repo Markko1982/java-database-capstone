@@ -79,6 +79,87 @@ public class AppointmentController {
         return ResponseEntity.ok(data);
     }
 
+    // POST /appointments (Authorization: Bearer <token>)
+    @PostMapping
+    public ResponseEntity<Map<String, String>> bookAppointmentBearer(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody Appointment appointment) {
+
+        String token = extractBearerToken(authorization);
+        if (token == null) {
+            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
+        }
+
+        Map<String, String> body = new HashMap<>();
+
+        // Apenas pacientes podem agendar
+        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
+            return tokenCheck;
+        }
+
+        // Valida disponibilidade
+        int validation = service.validateAppointment(appointment);
+        if (validation == -1) {
+            body.put("message", "Médico não encontrado.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        if (validation == 0) {
+            body.put("message", "Horário indisponível para este médico.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        }
+
+        // Reserva
+        int saved = appointmentService.bookAppointment(appointment, token);
+        if (saved == 1) {
+            body.put("message", "Agendamento criado com sucesso.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        } else {
+            body.put("message", "Erro ao criar agendamento.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        }
+    }
+
+    // PUT /appointments (Authorization: Bearer <token>)
+    @PutMapping
+    public ResponseEntity<Map<String, String>> updateAppointmentBearer(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody Appointment appointment) {
+
+        String token = extractBearerToken(authorization);
+        if (token == null) {
+            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
+        }
+
+        // Apenas pacientes podem atualizar
+        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
+            return tokenCheck;
+        }
+
+        return appointmentService.updateAppointment(appointment, token);
+    }
+
+    // DELETE /appointments/{id} (Authorization: Bearer <token>)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> cancelAppointmentBearer(
+            @PathVariable long id,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        String token = extractBearerToken(authorization);
+        if (token == null) {
+            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
+        }
+
+        // Apenas pacientes podem cancelar
+        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
+            return tokenCheck;
+        }
+
+        return appointmentService.cancelAppointment(id, token);
+    }
+
     // POST /appointments/{token}
     @PostMapping("/{token}")
     public ResponseEntity<Map<String, String>> bookAppointment(@PathVariable String token,
