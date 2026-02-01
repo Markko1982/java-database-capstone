@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,11 +24,47 @@ public class PatientController {
         this.service = service;
     }
 
+    private String extractBearerToken(String authorization) {
+        if (authorization == null)
+            return null;
+
+        // aceita "Bearer " com qualquer casing (Bearer/bearer/BEARER)
+        if (authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            String token = authorization.substring(7).trim();
+            return token.isEmpty() ? null : token;
+        }
+        return null;
+    }
+
+    private ResponseEntity<Map<String, String>> unauthorized(String message) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", message);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    // 1) Obter detalhes do paciente (Authorization: Bearer <token>)
+    @GetMapping
+    public ResponseEntity<?> getPatientDetailsBearer(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        String token = extractBearerToken(authorization);
+        if (token == null) {
+            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
+        }
+
+        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+            return tokenCheck;
+
+        return patientService.getPatientDetails(token);
+    }
+
     // 1) Obter detalhes do paciente
     @GetMapping("/{token}")
     public ResponseEntity<?> getPatientDetails(@PathVariable String token) {
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) return tokenCheck;
+        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+            return tokenCheck;
 
         return patientService.getPatientDetails(token);
     }
@@ -61,23 +96,60 @@ public class PatientController {
         return service.validatePatientLogin(login);
     }
 
+    // 4) Obter consultas do paciente (Authorization: Bearer <token>)
+    @GetMapping("/{id}/appointments")
+    public ResponseEntity<?> getAppointmentsBearer(@PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        String token = extractBearerToken(authorization);
+        if (token == null) {
+            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
+        }
+
+        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+            return tokenCheck;
+
+        return patientService.getPatientAppointment(id, token);
+    }
+
     // 4) Obter consultas do paciente
     @GetMapping("/{id}/{token}")
     public ResponseEntity<?> getAppointments(@PathVariable Long id,
-                                             @PathVariable String token) {
+            @PathVariable String token) {
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) return tokenCheck;
+        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+            return tokenCheck;
 
         return patientService.getPatientAppointment(id, token);
+    }
+
+    // 5) Filtrar consultas do paciente (Authorization: Bearer <token>)
+    @GetMapping("/filter/{condition}/{name}")
+    public ResponseEntity<?> filterAppointmentsBearer(@PathVariable String condition,
+            @PathVariable String name,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        String token = extractBearerToken(authorization);
+        if (token == null) {
+            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
+        }
+
+        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+            return tokenCheck;
+
+        return service.filterPatient(condition, name, token);
     }
 
     // 5) Filtrar consultas do paciente
     @GetMapping("/filter/{condition}/{name}/{token}")
     public ResponseEntity<?> filterAppointments(@PathVariable String condition,
-                                                @PathVariable String name,
-                                                @PathVariable String token) {
+            @PathVariable String name,
+            @PathVariable String token) {
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) return tokenCheck;
+        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+            return tokenCheck;
 
         return service.filterPatient(condition, name, token);
     }
