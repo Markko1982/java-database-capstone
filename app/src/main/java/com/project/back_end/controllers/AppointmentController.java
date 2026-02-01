@@ -23,11 +23,29 @@ public class AppointmentController {
         this.service = service;
     }
 
+    private String extractBearerToken(String authorization) {
+        if (authorization == null)
+            return null;
+
+        // aceita "Bearer " com qualquer casing (Bearer/bearer/BEARER)
+        if (authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            String token = authorization.substring(7).trim();
+            return token.isEmpty() ? null : token;
+        }
+        return null;
+    }
+
+    private ResponseEntity<Map<String, String>> unauthorized(String message) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", message);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
     // GET /appointments/{date}/{patientName}/{token}
     @GetMapping("/{date}/{patientName}/{token}")
     public ResponseEntity<?> getAppointments(@PathVariable String date,
-                                             @PathVariable String patientName,
-                                             @PathVariable String token) {
+            @PathVariable String patientName,
+            @PathVariable String token) {
         // Apenas médicos podem acessar
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "doctor");
         if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
@@ -39,10 +57,32 @@ public class AppointmentController {
         return ResponseEntity.ok(data);
     }
 
+    // GET /appointments/{date}/{patientName} (Authorization: Bearer <token>)
+    @GetMapping("/{date}/{patientName}")
+    public ResponseEntity<?> getAppointmentsBearer(@PathVariable String date,
+            @PathVariable String patientName,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        String token = extractBearerToken(authorization);
+        if (token == null) {
+            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
+        }
+
+        // Apenas médicos podem acessar
+        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "doctor");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
+            return tokenCheck;
+        }
+
+        LocalDate targetDate = LocalDate.parse(date);
+        Map<String, Object> data = appointmentService.getAppointment(patientName, targetDate, token);
+        return ResponseEntity.ok(data);
+    }
+
     // POST /appointments/{token}
     @PostMapping("/{token}")
     public ResponseEntity<Map<String, String>> bookAppointment(@PathVariable String token,
-                                                               @RequestBody Appointment appointment) {
+            @RequestBody Appointment appointment) {
         Map<String, String> body = new HashMap<>();
 
         // Apenas pacientes podem agendar
@@ -76,7 +116,7 @@ public class AppointmentController {
     // PUT /appointments/{token}
     @PutMapping("/{token}")
     public ResponseEntity<Map<String, String>> updateAppointment(@PathVariable String token,
-                                                                 @RequestBody Appointment appointment) {
+            @RequestBody Appointment appointment) {
         // Apenas pacientes podem atualizar
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
         if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
@@ -88,7 +128,7 @@ public class AppointmentController {
     // DELETE /appointments/{id}/{token}
     @DeleteMapping("/{id}/{token}")
     public ResponseEntity<Map<String, String>> cancelAppointment(@PathVariable long id,
-                                                                 @PathVariable String token) {
+            @PathVariable String token) {
         // Apenas pacientes podem cancelar
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
         if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
