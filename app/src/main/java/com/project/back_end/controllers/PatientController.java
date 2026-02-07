@@ -91,7 +91,8 @@ public class PatientController {
     public ResponseEntity<?> filterAppointmentsBearer(@PathVariable String condition,
             @PathVariable String name,
             @RequestAttribute("token") String token) {
-        return service.filterPatient(condition, name, token);
+        return patientService.filterPatient(condition, name, token);
+
     }
 
     // 5) Filtrar consultas do paciente
@@ -103,6 +104,7 @@ public class PatientController {
         if (!tokenCheck.getStatusCode().is2xxSuccessful())
             return tokenCheck;
 
-        return service.filterPatient(condition, name, token);
+        return patientService.filterPatient(condition, name, token);
+
     }
 }
