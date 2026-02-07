@@ -31,7 +31,11 @@ public class PatientController {
         return patientService.getPatientDetails(token);
     }
 
-    // 1) Obter detalhes do paciente
+    /**
+     * @deprecated Use GET /patient (Authorization: Bearer <token>)
+     */
+    @Deprecated
+    // 1) Obter detalhes do paciente (LEGADO: token na URL)
     @GetMapping("/{token}")
     public ResponseEntity<?> getPatientDetails(@PathVariable String token) {
         ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
@@ -86,7 +90,22 @@ public class PatientController {
         return patientService.getPatientAppointment(id, token);
     }
 
-    // 5) Filtrar consultas do paciente (Authorization: Bearer <token>)
+    // 5) Consultas do paciente com filtros via query params (REST)
+    // GET /patient/appointments?condition=past&doctor=Joao
+    @GetMapping("/appointments")
+    public ResponseEntity<?> listAppointments(
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false) String doctor,
+            @RequestAttribute("token") String token) {
+
+        return patientService.filterPatient(condition, doctor, token);
+    }
+
+    /**
+     * @deprecated Use GET /patient/appointments?condition=...&doctor=...
+     *             (Authorization: Bearer <token>)
+     */
+    @Deprecated
     @GetMapping("/filter/{condition}/{name}")
     public ResponseEntity<?> filterAppointmentsBearer(@PathVariable String condition,
             @PathVariable String name,
@@ -95,7 +114,11 @@ public class PatientController {
 
     }
 
-    // 5) Filtrar consultas do paciente
+    /**
+     * @deprecated Use GET /patient/appointments?condition=...&doctor=...
+     *             (Authorization: Bearer <token>)
+     */
+    @Deprecated
     @GetMapping("/filter/{condition}/{name}/{token}")
     public ResponseEntity<?> filterAppointments(@PathVariable String condition,
             @PathVariable String name,
