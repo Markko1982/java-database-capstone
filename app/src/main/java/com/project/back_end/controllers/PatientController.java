@@ -25,24 +25,6 @@ public class PatientController {
         this.service = service;
     }
 
-    private String extractBearerToken(String authorization) {
-        if (authorization == null)
-            return null;
-
-        // aceita "Bearer " com qualquer casing (Bearer/bearer/BEARER)
-        if (authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            String token = authorization.substring(7).trim();
-            return token.isEmpty() ? null : token;
-        }
-        return null;
-    }
-
-    private ResponseEntity<Map<String, String>> unauthorized(String message) {
-        Map<String, String> body = new HashMap<>();
-        body.put("message", message);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
-    }
-
     // 1) Obter detalhes do paciente (Authorization: Bearer <token>)
     @GetMapping
     public ResponseEntity<?> getPatientDetailsBearer(@RequestAttribute("token") String token) {
@@ -109,7 +91,8 @@ public class PatientController {
     public ResponseEntity<?> filterAppointmentsBearer(@PathVariable String condition,
             @PathVariable String name,
             @RequestAttribute("token") String token) {
-        return service.filterPatient(condition, name, token);
+        return patientService.filterPatient(condition, name, token);
+
     }
 
     // 5) Filtrar consultas do paciente
@@ -121,6 +104,7 @@ public class PatientController {
         if (!tokenCheck.getStatusCode().is2xxSuccessful())
             return tokenCheck;
 
-        return service.filterPatient(condition, name, token);
+        return patientService.filterPatient(condition, name, token);
+
     }
 }
