@@ -25,11 +25,11 @@ public class Service {
     private final PatientService patientService;
 
     public Service(TokenService tokenService,
-                   AdminRepository adminRepository,
-                   DoctorRepository doctorRepository,
-                   PatientRepository patientRepository,
-                   DoctorService doctorService,
-                   PatientService patientService) {
+            AdminRepository adminRepository,
+            DoctorRepository doctorRepository,
+            PatientRepository patientRepository,
+            DoctorService doctorService,
+            PatientService patientService) {
         this.tokenService = tokenService;
         this.adminRepository = adminRepository;
         this.doctorRepository = doctorRepository;
@@ -84,12 +84,18 @@ public class Service {
         String s = specialty == null ? "" : specialty.trim();
         String t = time == null ? "" : time.trim().toUpperCase();
 
-        if (!n.isEmpty() && !s.isEmpty() && !t.isEmpty()) return doctorService.filterDoctorsByNameSpecilityandTime(n, s, t);
-        if (!n.isEmpty() && !t.isEmpty()) return doctorService.filterDoctorByNameAndTime(n, t);
-        if (!n.isEmpty() && !s.isEmpty()) return doctorService.filterDoctorByNameAndSpecility(n, s);
-        if (!s.isEmpty() && !t.isEmpty()) return doctorService.filterDoctorByTimeAndSpecility(s, t);
-        if (!s.isEmpty()) return doctorService.filterDoctorBySpecility(s);
-        if (!t.isEmpty()) return doctorService.filterDoctorsByTime(t);
+        if (!n.isEmpty() && !s.isEmpty() && !t.isEmpty())
+            return doctorService.filterDoctorsByNameSpecilityandTime(n, s, t);
+        if (!n.isEmpty() && !t.isEmpty())
+            return doctorService.filterDoctorByNameAndTime(n, t);
+        if (!n.isEmpty() && !s.isEmpty())
+            return doctorService.filterDoctorByNameAndSpecility(n, s);
+        if (!s.isEmpty() && !t.isEmpty())
+            return doctorService.filterDoctorByTimeAndSpecility(s, t);
+        if (!s.isEmpty())
+            return doctorService.filterDoctorBySpecility(s);
+        if (!t.isEmpty())
+            return doctorService.filterDoctorsByTime(t);
 
         Map<String, Object> res = new HashMap<>();
         res.put("doctors", doctorService.getDoctors());
@@ -101,11 +107,13 @@ public class Service {
             return 0;
         }
         Optional<Doctor> optDoc = doctorRepository.findById(appointment.getDoctorId());
-        if (optDoc.isEmpty()) return -1;
+        if (optDoc.isEmpty())
+            return -1;
 
         LocalDate date = appointment.getAppointmentTime().toLocalDate();
         List<String> available = doctorService.getDoctorAvailability(appointment.getDoctorId(), date);
-        if (available == null || available.isEmpty()) return 0;
+        if (available == null || available.isEmpty())
+            return 0;
 
         String desired = appointment.getAppointmentTime()
                 .toLocalTime().withSecond(0).withNano(0).toString().substring(0, 5);
@@ -113,7 +121,8 @@ public class Service {
     }
 
     public boolean validatePatient(Patient patient) {
-        if (patient == null) return false;
+        if (patient == null)
+            return false;
         String email = patient.getEmail();
         String phone = patient.getPhone();
         Patient existing = patientRepository.findByEmailOrPhone(email, phone);
@@ -145,34 +154,4 @@ public class Service {
         }
     }
 
-    public ResponseEntity<Map<String, Object>> filterPatient(String condition, String name, String token) {
-        try {
-            String email = tokenService.getEmailFromToken(token);
-            if (email == null) {
-                Map<String, Object> err = new HashMap<>();
-                err.put("message", "Token inválido ou expirado.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
-            }
-            Patient p = patientRepository.findByEmail(email);
-            if (p == null) {
-                Map<String, Object> err = new HashMap<>();
-                err.put("message", "Paciente não encontrado.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
-            }
-
-            if (condition != null && !condition.isBlank() && name != null && !name.isBlank())
-                return patientService.filterByDoctorAndCondition(condition, name, p.getId());
-            if (condition != null && !condition.isBlank())
-                return patientService.filterByCondition(condition, p.getId());
-            if (name != null && !name.isBlank())
-                return patientService.filterByDoctor(name, p.getId());
-
-            return patientService.getPatientAppointment(p.getId(), token);
-
-        } catch (Exception e) {
-            Map<String, Object> err = new HashMap<>();
-            err.put("message", "Erro ao filtrar agendamentos do paciente.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
-        }
-    }
 }
