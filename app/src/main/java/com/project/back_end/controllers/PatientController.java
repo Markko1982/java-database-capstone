@@ -86,6 +86,17 @@ public class PatientController {
         return patientService.getPatientAppointment(id, token);
     }
 
+    // 5) Consultas do paciente com filtros via query params (REST)
+    // GET /patient/appointments?condition=past&doctor=Joao
+    @GetMapping("/appointments")
+    public ResponseEntity<?> listAppointments(
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false) String doctor,
+            @RequestAttribute("token") String token) {
+
+        return patientService.filterPatient(condition, doctor, token);
+    }
+
     // 5) Filtrar consultas do paciente (Authorization: Bearer <token>)
     @GetMapping("/filter/{condition}/{name}")
     public ResponseEntity<?> filterAppointmentsBearer(@PathVariable String condition,
