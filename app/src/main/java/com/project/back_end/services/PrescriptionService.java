@@ -4,12 +4,13 @@ import com.project.back_end.models.Prescription;
 import com.project.back_end.repo.mongo.PrescriptionRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@org.springframework.stereotype.Service
+@Service
 public class PrescriptionService {
 
     private final PrescriptionRepository prescriptionRepository;

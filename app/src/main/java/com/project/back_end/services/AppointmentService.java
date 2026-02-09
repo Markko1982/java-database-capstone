@@ -9,12 +9,13 @@ import com.project.back_end.repo.jpa.DoctorRepository;
 import com.project.back_end.repo.jpa.PatientRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@org.springframework.stereotype.Service
+@Service
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
@@ -24,10 +25,10 @@ public class AppointmentService {
     private final Service service;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
-                              PatientRepository patientRepository,
-                              DoctorRepository doctorRepository,
-                              TokenService tokenService,
-                              Service service) {
+            PatientRepository patientRepository,
+            DoctorRepository doctorRepository,
+            TokenService tokenService,
+            Service service) {
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
@@ -36,14 +37,16 @@ public class AppointmentService {
     }
 
     // 1) Reservar
-        // 1) Reservar (seguro: paciente vem do token)
+    // 1) Reservar (seguro: paciente vem do token)
     public int bookAppointment(Appointment appointment, String token) {
         try {
             String email = tokenService.getEmailFromToken(token);
-            if (email == null) return -1;
+            if (email == null)
+                return -1;
 
             Patient patient = patientRepository.findByEmail(email);
-            if (patient == null) return -1;
+            if (patient == null)
+                return -1;
 
             // ignora qualquer patient vindo do payload (evita overposting)
             appointment.setPatient(patient);
@@ -55,7 +58,6 @@ public class AppointmentService {
         }
     }
 
-    
     public int bookAppointment(Appointment appointment) {
         try {
             appointmentRepository.save(appointment);
@@ -66,7 +68,7 @@ public class AppointmentService {
     }
 
     // 2) Atualizar
-   
+
     public ResponseEntity<Map<String, String>> updateAppointment(Appointment appointment, String token) {
         Map<String, String> body = new HashMap<>();
         try {
@@ -93,7 +95,8 @@ public class AppointmentService {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
             }
 
-            // ✅ força o patient correto mesmo se payload vier sem patient (ou tentar trocar)
+            // ✅ força o patient correto mesmo se payload vier sem patient (ou tentar
+            // trocar)
             appointment.setPatient(existing.getPatient());
 
             int valid = service.validateAppointment(appointment);
@@ -116,7 +119,6 @@ public class AppointmentService {
         }
     }
 
-
     // 3) Cancelar
     public ResponseEntity<Map<String, String>> cancelAppointment(long id, String token) {
         Map<String, String> body = new HashMap<>();
@@ -130,7 +132,8 @@ public class AppointmentService {
             Appointment appt = apptOpt.get();
             String email = tokenService.getEmailFromToken(token);
             Patient requester = patientRepository.findByEmail(email);
-            if (requester == null || appt.getPatient() == null || !Objects.equals(appt.getPatient().getId(), requester.getId())) {
+            if (requester == null || appt.getPatient() == null
+                    || !Objects.equals(appt.getPatient().getId(), requester.getId())) {
                 body.put("message", "Acesso negado.");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
             }
@@ -144,7 +147,8 @@ public class AppointmentService {
         }
     }
 
-    // 4) Buscar agendamentos para um médico em uma data (filtrando por paciente opcional)
+    // 4) Buscar agendamentos para um médico em uma data (filtrando por paciente
+    // opcional)
     public Map<String, Object> getAppointment(String pname, LocalDate date, String token) {
         Map<String, Object> res = new HashMap<>();
         try {
@@ -187,8 +191,7 @@ public class AppointmentService {
                         patientAddress,
                         a.getAppointmentTime(),
                         // LINHA CORRIGIDA ABAIXO
-                        (a.getStatus() != null ? a.getStatus() : 0)
-                );
+                        (a.getStatus() != null ? a.getStatus() : 0));
                 dtos.add(dto);
             }
             res.put("appointments", dtos);

@@ -7,34 +7,33 @@ import com.project.back_end.repo.jpa.AdminRepository;
 import com.project.back_end.repo.jpa.DoctorRepository;
 import com.project.back_end.repo.jpa.PatientRepository;
 
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Locale;
 
-@Component
+@Service
 public class TokenService {
 
     private final AdminRepository adminRepository;
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
 
-   @Value("${jwt.secret}")
+    @Value("${jwt.secret}")
 
     private String secret;
 
     private static final long EXPIRATION_MS = 7L * 24 * 60 * 60 * 1000;
 
     public TokenService(AdminRepository adminRepository,
-                        DoctorRepository doctorRepository,
-                        PatientRepository patientRepository) {
+            DoctorRepository doctorRepository,
+            PatientRepository patientRepository) {
         this.adminRepository = adminRepository;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
@@ -96,7 +95,8 @@ public class TokenService {
     }
 
     private String sanitize(String token) {
-        if (token == null) return "";
+        if (token == null)
+            return "";
         String t = token.trim();
         if (t.toLowerCase(Locale.ROOT).startsWith("bearer ")) {
             return t.substring(7).trim();
