@@ -6,13 +6,14 @@ import com.project.back_end.repo.jpa.AppointmentRepository;
 import com.project.back_end.repo.jpa.DoctorRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@org.springframework.stereotype.Service
+@Service
 public class DoctorService {
 
     private final DoctorRepository doctorRepository;
@@ -20,8 +21,8 @@ public class DoctorService {
     private final TokenService tokenService;
 
     public DoctorService(DoctorRepository doctorRepository,
-                         AppointmentRepository appointmentRepository,
-                         TokenService tokenService) {
+            AppointmentRepository appointmentRepository,
+            TokenService tokenService) {
         this.doctorRepository = doctorRepository;
         this.appointmentRepository = appointmentRepository;
         this.tokenService = tokenService;
@@ -29,16 +30,18 @@ public class DoctorService {
 
     public List<String> getDoctorAvailability(Long doctorId, LocalDate date) {
         Optional<Doctor> opt = doctorRepository.findById(doctorId);
-        if (opt.isEmpty()) return Collections.emptyList();
+        if (opt.isEmpty())
+            return Collections.emptyList();
         Doctor d = opt.get();
-        List<String> available = new ArrayList<>(Optional.ofNullable(d.getAvailableTimes()).orElse(Collections.emptyList()));
+        List<String> available = new ArrayList<>(
+                Optional.ofNullable(d.getAvailableTimes()).orElse(Collections.emptyList()));
 
         var start = date.atStartOfDay();
         var end = date.plusDays(1).atStartOfDay().minusNanos(1);
 
         var booked = appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doctorId, start, end)
                 .stream()
-                .map(a -> a.getAppointmentTime().toLocalTime().withSecond(0).withNano(0).toString().substring(0,5))
+                .map(a -> a.getAppointmentTime().toLocalTime().withSecond(0).withNano(0).toString().substring(0, 5))
                 .collect(Collectors.toSet());
 
         available.removeIf(booked::contains);
@@ -48,7 +51,8 @@ public class DoctorService {
 
     public int saveDoctor(Doctor doctor) {
         try {
-            if (doctorRepository.findByEmail(doctor.getEmail()) != null) return -1;
+            if (doctorRepository.findByEmail(doctor.getEmail()) != null)
+                return -1;
             doctorRepository.save(doctor);
             return 1;
         } catch (Exception e) {
@@ -58,7 +62,8 @@ public class DoctorService {
 
     public int updateDoctor(Doctor doctor) {
         try {
-            if (doctor.getId() == null || doctorRepository.findById(doctor.getId()).isEmpty()) return -1;
+            if (doctor.getId() == null || doctorRepository.findById(doctor.getId()).isEmpty())
+                return -1;
             doctorRepository.save(doctor);
             return 1;
         } catch (Exception e) {
@@ -72,7 +77,8 @@ public class DoctorService {
 
     public int deleteDoctor(long id) {
         try {
-            if (doctorRepository.findById(id).isEmpty()) return -1;
+            if (doctorRepository.findById(id).isEmpty())
+                return -1;
             // LINHA CORRIGIDA ABAIXO
             appointmentRepository.deleteAllByDoctor_Id(id);
             doctorRepository.deleteById(id);
@@ -151,11 +157,13 @@ public class DoctorService {
     }
 
     private List<Doctor> filterDoctorByTime(List<Doctor> doctors, String amOrPm) {
-        if (amOrPm == null || amOrPm.isBlank()) return doctors;
+        if (amOrPm == null || amOrPm.isBlank())
+            return doctors;
         boolean isAM = amOrPm.trim().equalsIgnoreCase("AM");
         return doctors.stream().filter(d -> {
             List<String> times = d.getAvailableTimes();
-            if (times == null) return false;
+            if (times == null)
+                return false;
             return times.stream().anyMatch(t -> {
                 try {
                     LocalTime lt = LocalTime.parse(t);
