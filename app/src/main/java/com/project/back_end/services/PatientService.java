@@ -9,11 +9,12 @@ import com.project.back_end.repo.jpa.DoctorRepository;
 import com.project.back_end.repo.jpa.PatientRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@org.springframework.stereotype.Service
+@Service
 public class PatientService {
 
     private final PatientRepository patientRepository;
@@ -143,6 +144,7 @@ public class PatientService {
             res.put("message", "Erro ao obter detalhes do paciente.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
         }
+    }
 
     public ResponseEntity<Map<String, Object>> filterPatient(String condition, String name, String token) {
         try {
