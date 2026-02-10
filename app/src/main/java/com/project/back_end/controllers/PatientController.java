@@ -29,16 +29,8 @@ public class PatientController {
     // 1) Obter detalhes do paciente (Authorization: Bearer <token>)
     @GetMapping
     public ResponseEntity<?> getPatientDetailsBearer(@RequestAttribute("token") String token) {
-        try {
-            Map<String, Object> patient = patientService.getPatientDetails(token);
-            return ResponseEntity.ok(patient);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Erro ao obter detalhes do paciente."));
-        }
+        Map<String, Object> patient = patientService.getPatientDetails(token);
+        return ResponseEntity.ok(patient);
     }
 
     /**
