@@ -120,30 +120,23 @@ public class PatientService {
     }
 
     /** 6) Detalhes do paciente a partir do token */
-    public ResponseEntity<Map<String, Object>> getPatientDetails(String token) {
-        Map<String, Object> res = new HashMap<>();
-        try {
-            String email = tokenService.getEmailFromToken(token);
-            Patient p = patientRepository.findByEmail(email);
-            if (p == null) {
-                res.put("message", "Paciente não encontrado.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
-            }
+    public Map<String, Object> getPatientDetails(String token) {
+        String email = tokenService.getEmailFromToken(token);
+        Patient p = patientRepository.findByEmail(email);
 
-            // evita expor senha
-            Map<String, Object> sanitized = new HashMap<>();
-            sanitized.put("id", p.getId());
-            sanitized.put("name", p.getName());
-            sanitized.put("email", p.getEmail());
-            sanitized.put("phone", p.getPhone());
-            sanitized.put("address", p.getAddress());
-
-            res.put("patient", sanitized);
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            res.put("message", "Erro ao obter detalhes do paciente.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+        if (p == null) {
+            throw new NoSuchElementException("Paciente não encontrado.");
         }
+
+        // evita expor senha
+        Map<String, Object> sanitized = new HashMap<>();
+        sanitized.put("id", p.getId());
+        sanitized.put("name", p.getName());
+        sanitized.put("email", p.getEmail());
+        sanitized.put("phone", p.getPhone());
+        sanitized.put("address", p.getAddress());
+
+        return sanitized;
     }
 
     public ResponseEntity<Map<String, Object>> filterPatient(String condition, String name, String token) {
