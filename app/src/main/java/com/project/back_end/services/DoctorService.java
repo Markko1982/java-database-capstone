@@ -60,6 +60,19 @@ public class DoctorService {
         }
     }
 
+    public void saveDoctorOrThrow(Doctor doctor) {
+        int result = saveDoctor(doctor);
+
+        if (result == 1) {
+            return;
+        }
+        if (result == -1) {
+            throw new IllegalArgumentException("Médico já cadastrado.");
+        }
+
+        throw new RuntimeException("Erro interno ao cadastrar médico.");
+    }
+
     public int updateDoctor(Doctor doctor) {
         try {
             if (doctor.getId() == null || doctorRepository.findById(doctor.getId()).isEmpty())
@@ -69,6 +82,19 @@ public class DoctorService {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    public void updateDoctorOrThrow(Doctor doctor) {
+        int result = updateDoctor(doctor);
+
+        if (result == 1) {
+            return;
+        }
+        if (result == -1) {
+            throw new jakarta.persistence.EntityNotFoundException("Médico não encontrado.");
+        }
+
+        throw new RuntimeException("Erro interno ao atualizar médico.");
     }
 
     public List<Doctor> getDoctors() {
@@ -86,6 +112,19 @@ public class DoctorService {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    public void deleteDoctorOrThrow(Long id) {
+        int result = deleteDoctor(id);
+
+        if (result == 1) {
+            return;
+        }
+        if (result == -1) {
+            throw new jakarta.persistence.EntityNotFoundException("Médico não encontrado com id: " + id);
+        }
+
+        throw new RuntimeException("Erro interno ao excluir médico.");
     }
 
     public ResponseEntity<Map<String, String>> validateDoctor(Login login) {
