@@ -13,7 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class AppointmentService {
@@ -22,13 +27,13 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final TokenService tokenService;
-    private final Service service;
+    private final com.project.back_end.services.Service service;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
             PatientRepository patientRepository,
             DoctorRepository doctorRepository,
             TokenService tokenService,
-            Service service) {
+            com.project.back_end.services.Service service) {
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
@@ -36,7 +41,6 @@ public class AppointmentService {
         this.service = service;
     }
 
-    // 1) Reservar
     // 1) Reservar (seguro: paciente vem do token)
     public int bookAppointment(Appointment appointment, String token) {
         try {
@@ -67,59 +71,83 @@ public class AppointmentService {
         }
     }
 
-    // 2) Atualizar
+    public void bookAppointmentOrThrow(Appointment appointment, String token) {
+        if (appointment == null) {
+            throw new IllegalArgumentException("Agendamento é obrigatório.");
+        }
 
+        int validation = service.validateAppointment(appointment);
+        if (validation == -1) {
+            throw new jakarta.persistence.EntityNotFoundException("Médico não encontrado.");
+        }
+        if (validation == 0) {
+            throw new IllegalArgumentException("Horário indisponível para este médico.");
+        }
+
+        int saved = bookAppointment(appointment, token);
+        if (saved != 1) {
+            throw new RuntimeException("Erro ao criar agendamento.");
+        }
+    }
+
+    // 2) Atualizar (LEGADO) - mantém assinatura, mas não contém regra de HTTP
+    // (Controller novo deve usar updateAppointmentOrThrow)
     public ResponseEntity<Map<String, String>> updateAppointment(Appointment appointment, String token) {
         Map<String, String> body = new HashMap<>();
         try {
-            if (appointment == null || appointment.getId() == null) {
-                body.put("message", "ID de agendamento é obrigatório.");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-            }
-
-            Optional<Appointment> existingOpt = appointmentRepository.findById(appointment.getId());
-            if (existingOpt.isEmpty()) {
-                body.put("message", "Agendamento não encontrado.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
-            }
-
-            Appointment existing = existingOpt.get();
-
-            // ✅ ownership: só o paciente dono pode atualizar
-            String email = tokenService.getEmailFromToken(token);
-            Patient requester = patientRepository.findByEmail(email);
-            if (requester == null
-                    || existing.getPatient() == null
-                    || !Objects.equals(existing.getPatient().getId(), requester.getId())) {
-                body.put("message", "Acesso negado.");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
-            }
-
-            // ✅ força o patient correto mesmo se payload vier sem patient (ou tentar
-            // trocar)
-            appointment.setPatient(existing.getPatient());
-
-            int valid = service.validateAppointment(appointment);
-            if (valid == -1) {
-                body.put("message", "Médico inválido.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
-            }
-            if (valid == 0) {
-                body.put("message", "Horário indisponível.");
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
-            }
-
-            appointmentRepository.save(appointment);
+            updateAppointmentOrThrow(appointment, token);
             body.put("message", "Agendamento atualizado.");
             return ResponseEntity.ok(body);
-
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            body.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        } catch (IllegalArgumentException e) {
+            // Horário indisponível / payload inválido
+            body.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        } catch (SecurityException e) {
+            body.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
         } catch (Exception e) {
             body.put("message", "Erro ao atualizar agendamento.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
         }
     }
 
-    // 3) Cancelar
+    // 2) Atualizar (NOVO PADRÃO)
+    public void updateAppointmentOrThrow(Appointment appointment, String token) {
+        if (appointment == null || appointment.getId() == null) {
+            throw new IllegalArgumentException("ID de agendamento é obrigatório.");
+        }
+
+        Appointment existing = appointmentRepository.findById(appointment.getId())
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Agendamento não encontrado."));
+
+        // ownership: só o paciente dono pode atualizar
+        String email = tokenService.getEmailFromToken(token);
+        Patient requester = patientRepository.findByEmail(email);
+
+        if (requester == null
+                || existing.getPatient() == null
+                || !Objects.equals(existing.getPatient().getId(), requester.getId())) {
+            throw new SecurityException("Acesso negado.");
+        }
+
+        // força o patient correto mesmo se payload vier sem patient (ou tentar trocar)
+        appointment.setPatient(existing.getPatient());
+
+        int valid = service.validateAppointment(appointment);
+        if (valid == -1) {
+            throw new jakarta.persistence.EntityNotFoundException("Médico inválido.");
+        }
+        if (valid == 0) {
+            throw new IllegalArgumentException("Horário indisponível.");
+        }
+
+        appointmentRepository.save(appointment);
+    }
+
+    // 3) Cancelar (LEGADO) - ainda retorna ResponseEntity. Vamos padronizar depois.
     public ResponseEntity<Map<String, String>> cancelAppointment(long id, String token) {
         Map<String, String> body = new HashMap<>();
         try {
@@ -145,6 +173,22 @@ public class AppointmentService {
             body.put("message", "Erro ao cancelar agendamento.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
         }
+    }
+
+    public void cancelAppointmentOrThrow(long id, String token) {
+        Appointment appt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Agendamento não encontrado."));
+
+        String email = tokenService.getEmailFromToken(token);
+        Patient requester = patientRepository.findByEmail(email);
+
+        if (requester == null
+                || appt.getPatient() == null
+                || !Objects.equals(appt.getPatient().getId(), requester.getId())) {
+            throw new SecurityException("Acesso negado.");
+        }
+
+        appointmentRepository.delete(appt);
     }
 
     // 4) Buscar agendamentos para um médico em uma data (filtrando por paciente
@@ -190,7 +234,6 @@ public class AppointmentService {
                         patientPhone,
                         patientAddress,
                         a.getAppointmentTime(),
-                        // LINHA CORRIGIDA ABAIXO
                         (a.getStatus() != null ? a.getStatus() : 0));
                 dtos.add(dto);
             }

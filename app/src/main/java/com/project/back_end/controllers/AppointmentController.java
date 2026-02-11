@@ -23,24 +23,6 @@ public class AppointmentController {
         this.service = service;
     }
 
-    private String extractBearerToken(String authorization) {
-        if (authorization == null)
-            return null;
-
-        // aceita "Bearer " com qualquer casing (Bearer/bearer/BEARER)
-        if (authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            String token = authorization.substring(7).trim();
-            return token.isEmpty() ? null : token;
-        }
-        return null;
-    }
-
-    private ResponseEntity<Map<String, String>> unauthorized(String message) {
-        Map<String, String> body = new HashMap<>();
-        body.put("message", message);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
-    }
-
     // GET /appointments/{date}/{patientName}/{token}
     @GetMapping("/{date}/{patientName}/{token}")
     public ResponseEntity<?> getAppointments(@PathVariable String date,
@@ -61,18 +43,7 @@ public class AppointmentController {
     @GetMapping("/{date}/{patientName}")
     public ResponseEntity<?> getAppointmentsBearer(@PathVariable String date,
             @PathVariable String patientName,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-
-        String token = extractBearerToken(authorization);
-        if (token == null) {
-            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
-        }
-
-        // Apenas médicos podem acessar
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "doctor");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
-            return tokenCheck;
-        }
+            @RequestAttribute("token") String token) {
 
         LocalDate targetDate = LocalDate.parse(date);
         Map<String, Object> data = appointmentService.getAppointment(patientName, targetDate, token);
@@ -82,82 +53,40 @@ public class AppointmentController {
     // POST /appointments (Authorization: Bearer <token>)
     @PostMapping
     public ResponseEntity<Map<String, String>> bookAppointmentBearer(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestAttribute("token") String token,
             @RequestBody Appointment appointment) {
 
-        String token = extractBearerToken(authorization);
-        if (token == null) {
-            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
-        }
+        appointmentService.bookAppointmentOrThrow(appointment, token);
 
         Map<String, String> body = new HashMap<>();
-
-        // Apenas pacientes podem agendar
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
-            return tokenCheck;
-        }
-
-        // Valida disponibilidade
-        int validation = service.validateAppointment(appointment);
-        if (validation == -1) {
-            body.put("message", "Médico não encontrado.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
-        }
-        if (validation == 0) {
-            body.put("message", "Horário indisponível para este médico.");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
-        }
-
-        // Reserva
-        int saved = appointmentService.bookAppointment(appointment, token);
-        if (saved == 1) {
-            body.put("message", "Agendamento criado com sucesso.");
-            return ResponseEntity.status(HttpStatus.CREATED).body(body);
-        } else {
-            body.put("message", "Erro ao criar agendamento.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
-        }
+        body.put("message", "Agendamento criado com sucesso.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     // PUT /appointments (Authorization: Bearer <token>)
     @PutMapping
     public ResponseEntity<Map<String, String>> updateAppointmentBearer(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestAttribute("token") String token,
             @RequestBody Appointment appointment) {
 
-        String token = extractBearerToken(authorization);
-        if (token == null) {
-            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
-        }
+        appointmentService.updateAppointmentOrThrow(appointment, token);
 
-        // Apenas pacientes podem atualizar
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
-            return tokenCheck;
-        }
-
-        return appointmentService.updateAppointment(appointment, token);
+        Map<String, String> body = new HashMap<>();
+        body.put("message", "Agendamento atualizado.");
+        return ResponseEntity.ok(body);
     }
 
     // DELETE /appointments/{id} (Authorization: Bearer <token>)
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> cancelAppointmentBearer(
             @PathVariable long id,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
+            @RequestAttribute("token") String token) {
 
-        String token = extractBearerToken(authorization);
-        if (token == null) {
-            return unauthorized("Token ausente ou inválido. Use Authorization: Bearer <token>.");
-        }
+        appointmentService.cancelAppointmentOrThrow(id, token);
 
-        // Apenas pacientes podem cancelar
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
-            return tokenCheck;
-        }
-
-        return appointmentService.cancelAppointment(id, token);
+        Map<String, String> body = new HashMap<>();
+        body.put("message", "Agendamento cancelado.");
+        return ResponseEntity.ok(body);
     }
 
     // POST /appointments/{token}
