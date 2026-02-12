@@ -68,6 +68,21 @@ public class AppointmentService {
         }
     }
 
+    public void bookAppointmentOrThrow(Appointment appointment, String token, Long doctorId) {
+        if (doctorId == null) {
+            throw new IllegalArgumentException("doctorId é obrigatório.");
+        }
+
+        var doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Médico não encontrado."));
+
+        // monta o mínimo pra validação e persistência
+        appointment.setDoctor(doctor);
+
+        // reutiliza regra existente
+        bookAppointmentOrThrow(appointment, token);
+    }
+
     public void bookAppointmentOrThrow(Appointment appointment, String token) {
         if (appointment == null) {
             throw new IllegalArgumentException("Agendamento é obrigatório.");

@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.back_end.dto.AppointmentCreateRequest;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.services.AppointmentService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/appointments")
@@ -43,9 +46,13 @@ public class AppointmentController {
     @PostMapping
     public ResponseEntity<Void> bookAppointmentBearer(
             @RequestAttribute("token") String token,
-            @RequestBody Appointment appointment) {
+            @Valid @RequestBody AppointmentCreateRequest request) {
 
-        appointmentService.bookAppointmentOrThrow(appointment, token);
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentTime(request.getAppointmentTime());
+
+        appointmentService.bookAppointmentOrThrow(appointment, token, request.getDoctorId());
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
