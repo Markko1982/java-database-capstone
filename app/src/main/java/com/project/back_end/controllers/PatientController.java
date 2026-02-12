@@ -44,7 +44,8 @@ public class PatientController {
         if (!tokenCheck.getStatusCode().is2xxSuccessful())
             return tokenCheck;
 
-        return patientService.getPatientDetails(token);
+        return ResponseEntity.ok(patientService.getPatientDetails(token));
+
     }
 
     // 2) Criar novo paciente
