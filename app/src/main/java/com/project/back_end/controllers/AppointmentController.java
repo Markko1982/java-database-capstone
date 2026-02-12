@@ -1,15 +1,22 @@
 package com.project.back_end.controllers;
 
-import com.project.back_end.models.Appointment;
-import com.project.back_end.services.AppointmentService;
+import java.time.LocalDate;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+import com.project.back_end.models.Appointment;
+import com.project.back_end.services.AppointmentService;
 
 @RestController
 @RequestMapping("/appointments")
@@ -34,41 +41,32 @@ public class AppointmentController {
 
     // POST /appointments (Authorization: Bearer <token>)
     @PostMapping
-    public ResponseEntity<Map<String, String>> bookAppointmentBearer(
+    public ResponseEntity<Void> bookAppointmentBearer(
             @RequestAttribute("token") String token,
             @RequestBody Appointment appointment) {
 
         appointmentService.bookAppointmentOrThrow(appointment, token);
-
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Agendamento criado com sucesso.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     // PUT /appointments (Authorization: Bearer <token>)
     @PutMapping
-    public ResponseEntity<Map<String, String>> updateAppointmentBearer(
+    public ResponseEntity<Void> updateAppointmentBearer(
             @RequestAttribute("token") String token,
             @RequestBody Appointment appointment) {
 
         appointmentService.updateAppointmentOrThrow(appointment, token);
-
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Agendamento atualizado.");
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok().build();
     }
 
     // DELETE /appointments/{id} (Authorization: Bearer <token>)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> cancelAppointmentBearer(
+    public ResponseEntity<Void> cancelAppointmentBearer(
             @PathVariable long id,
             @RequestAttribute("token") String token) {
 
         appointmentService.cancelAppointmentOrThrow(id, token);
-
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Agendamento cancelado.");
-        return ResponseEntity.ok(body);
+        return ResponseEntity.noContent().build();
     }
 
 }
