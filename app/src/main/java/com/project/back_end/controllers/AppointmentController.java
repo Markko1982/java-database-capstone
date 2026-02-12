@@ -21,14 +21,18 @@ import com.project.back_end.services.AppointmentService;
 
 import jakarta.validation.Valid;
 
+import com.project.back_end.mappers.AppointmentMapper;
+
 @RestController
 @RequestMapping("/appointments")
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final AppointmentMapper appointmentMapper;
 
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(AppointmentService appointmentService, AppointmentMapper appointmentMapper) {
         this.appointmentService = appointmentService;
+        this.appointmentMapper = appointmentMapper;
     }
 
     // GET /appointments/{date}/{patientName} (Authorization: Bearer <token>)
@@ -48,8 +52,7 @@ public class AppointmentController {
             @RequestAttribute("token") String token,
             @Valid @RequestBody AppointmentCreateRequest request) {
 
-        Appointment appointment = new Appointment();
-        appointment.setAppointmentTime(request.getAppointmentTime());
+        Appointment appointment = appointmentMapper.fromCreateRequest(request);
 
         appointmentService.bookAppointmentOrThrow(appointment, token, request.getDoctorId());
 
