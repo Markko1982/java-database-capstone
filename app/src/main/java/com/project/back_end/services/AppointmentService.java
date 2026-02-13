@@ -11,11 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class AppointmentService {
@@ -38,72 +34,67 @@ public class AppointmentService {
         this.service = service;
     }
 
-    // 1) Reservar (seguro: paciente vem do token)
-    public int bookAppointment(Appointment appointment, String token) {
-        try {
-            String email = tokenService.getEmailFromToken(token);
-            if (email == null)
-                return -1;
+    // ==============================
+    // CRIAÇÃO (PADRÃO NOVO)
+    // ==============================
 
-            Patient patient = patientRepository.findByEmail(email);
-            if (patient == null)
-                return -1;
+    public Appointment bookAppointmentOrThrow(Appointment appointment, String token, Long doctorId) {
 
-            // ignora qualquer patient vindo do payload (evita overposting)
-            appointment.setPatient(patient);
-
-            appointmentRepository.save(appointment);
-            return 1;
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    public int bookAppointment(Appointment appointment) {
-        try {
-            appointmentRepository.save(appointment);
-            return 1;
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    public void bookAppointmentOrThrow(Appointment appointment, String token, Long doctorId) {
         if (doctorId == null) {
             throw new IllegalArgumentException("doctorId é obrigatório.");
         }
 
-        var doctor = doctorRepository.findById(doctorId)
+        Doctor doctor = doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Médico não encontrado."));
 
-        // monta o mínimo pra validação e persistência
         appointment.setDoctor(doctor);
 
-        // reutiliza regra existente
-        bookAppointmentOrThrow(appointment, token);
+        return bookAppointmentOrThrow(appointment, token);
     }
 
-    public void bookAppointmentOrThrow(Appointment appointment, String token) {
+    public Appointment bookAppointmentOrThrow(Appointment appointment, String token) {
+
         if (appointment == null) {
             throw new IllegalArgumentException("Agendamento é obrigatório.");
         }
 
         int validation = service.validateAppointment(appointment);
+
         if (validation == -1) {
             throw new jakarta.persistence.EntityNotFoundException("Médico não encontrado.");
         }
+
         if (validation == 0) {
             throw new IllegalArgumentException("Horário indisponível para este médico.");
         }
 
-        int saved = bookAppointment(appointment, token);
-        if (saved != 1) {
-            throw new RuntimeException("Erro ao criar agendamento.");
-        }
+        return bookAppointment(appointment, token);
     }
 
-    // 2) Atualizar (NOVO PADRÃO)
+    private Appointment bookAppointment(Appointment appointment, String token) {
+
+        String email = tokenService.getEmailFromToken(token);
+        if (email == null) {
+            throw new SecurityException("Token inválido.");
+        }
+
+        Patient patient = patientRepository.findByEmail(email);
+        if (patient == null) {
+            throw new jakarta.persistence.EntityNotFoundException("Paciente não encontrado.");
+        }
+
+        // evita overposting
+        appointment.setPatient(patient);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    // ==============================
+    // UPDATE
+    // ==============================
+
     public void updateAppointmentOrThrow(Appointment appointment, String token) {
+
         if (appointment == null || appointment.getId() == null) {
             throw new IllegalArgumentException("ID de agendamento é obrigatório.");
         }
@@ -111,7 +102,6 @@ public class AppointmentService {
         Appointment existing = appointmentRepository.findById(appointment.getId())
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Agendamento não encontrado."));
 
-        // ownership: só o paciente dono pode atualizar
         String email = tokenService.getEmailFromToken(token);
         Patient requester = patientRepository.findByEmail(email);
 
@@ -121,13 +111,14 @@ public class AppointmentService {
             throw new SecurityException("Acesso negado.");
         }
 
-        // força o patient correto mesmo se payload vier sem patient (ou tentar trocar)
         appointment.setPatient(existing.getPatient());
 
         int valid = service.validateAppointment(appointment);
+
         if (valid == -1) {
             throw new jakarta.persistence.EntityNotFoundException("Médico inválido.");
         }
+
         if (valid == 0) {
             throw new IllegalArgumentException("Horário indisponível.");
         }
@@ -135,7 +126,12 @@ public class AppointmentService {
         appointmentRepository.save(appointment);
     }
 
+    // ==============================
+    // DELETE
+    // ==============================
+
     public void cancelAppointmentOrThrow(long id, String token) {
+
         Appointment appt = appointmentRepository.findById(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Agendamento não encontrado."));
 
@@ -151,9 +147,15 @@ public class AppointmentService {
         appointmentRepository.delete(appt);
     }
 
+    // ==============================
+    // LISTAGEM
+    // ==============================
+
     public Map<String, Object> getAppointmentOrThrow(String pname, LocalDate date, String token) {
+
         String email = tokenService.getEmailFromToken(token);
         Doctor doc = doctorRepository.findByEmail(email);
+
         if (doc == null) {
             throw new jakarta.persistence.EntityNotFoundException("Médico não encontrado.");
         }
@@ -162,15 +164,20 @@ public class AppointmentService {
         LocalDateTime end = date.plusDays(1).atStartOfDay().minusNanos(1);
 
         List<Appointment> list;
+
         if (pname != null && !pname.isBlank()) {
-            list = appointmentRepository.findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(
-                    doc.getId(), pname.trim(), start, end);
+            list = appointmentRepository
+                    .findByDoctorIdAndPatient_NameContainingIgnoreCaseAndAppointmentTimeBetween(
+                            doc.getId(), pname.trim(), start, end);
         } else {
-            list = appointmentRepository.findByDoctorIdAndAppointmentTimeBetween(doc.getId(), start, end);
+            list = appointmentRepository
+                    .findByDoctorIdAndAppointmentTimeBetween(doc.getId(), start, end);
         }
 
         List<AppointmentDTO> dtos = new ArrayList<>();
+
         for (Appointment a : list) {
+
             Long patientId = a.getPatient() != null ? a.getPatient().getId() : null;
             String patientName = a.getPatient() != null ? a.getPatient().getName() : null;
             String patientEmail = a.getPatient() != null ? a.getPatient().getEmail() : null;
@@ -190,12 +197,13 @@ public class AppointmentService {
                     patientAddress,
                     a.getAppointmentTime(),
                     (a.getStatus() != null ? a.getStatus() : 0));
+
             dtos.add(dto);
         }
 
         Map<String, Object> res = new HashMap<>();
         res.put("appointments", dtos);
+
         return res;
     }
-
 }

@@ -1,5 +1,6 @@
 package com.project.back_end.controllers;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -54,9 +55,13 @@ public class AppointmentController {
 
         Appointment appointment = appointmentMapper.fromCreateRequest(request);
 
-        appointmentService.bookAppointmentOrThrow(appointment, token, request.getDoctorId());
+        Appointment saved = appointmentService
+                .bookAppointmentOrThrow(appointment, token, request.getDoctorId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        URI location = URI.create("/appointments/" + saved.getId());
+
+        return ResponseEntity.created(location).build();
+
     }
 
     // PUT /appointments (Authorization: Bearer <token>)
