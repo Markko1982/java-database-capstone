@@ -1,3 +1,62 @@
+-- ======================================================================
+-- TABELAS PRINCIPAIS
+-- ======================================================================
+
+DROP TABLE IF EXISTS doctor_available_times;
+DROP TABLE IF EXISTS appointment;
+DROP TABLE IF EXISTS patient;
+DROP TABLE IF EXISTS admin;
+DROP TABLE IF EXISTS doctor;
+
+CREATE TABLE doctor (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    specialty VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE doctor_available_times (
+  doctor_id BIGINT NOT NULL,
+  available_time VARCHAR(11) NOT NULL,
+  CONSTRAINT fk_doctor_available_times_doctor
+    FOREIGN KEY (doctor_id) REFERENCES doctor(id)
+);
+
+DROP TABLE IF EXISTS appointments;
+DROP TABLE IF EXISTS patient;
+DROP TABLE IF EXISTS admin;
+
+CREATE TABLE patient (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    address VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE admin (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE appointment (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  appointment_time DATETIME NOT NULL,
+  status INT NOT NULL,
+  doctor_id BIGINT NOT NULL,
+  patient_id BIGINT NOT NULL,
+  CONSTRAINT fk_appointments_doctor FOREIGN KEY (doctor_id) REFERENCES doctor(id),
+  CONSTRAINT fk_appointments_patient FOREIGN KEY (patient_id) REFERENCES patient(id)
+);
+
+
+-- (aqui continuam os PROCEDURES que você já tinha)
+
 -- Procedimento 1: Relatório Diário de Consultas por Médico
 DELIMITER $$
 CREATE PROCEDURE GetDailyAppointmentReportByDoctor(
