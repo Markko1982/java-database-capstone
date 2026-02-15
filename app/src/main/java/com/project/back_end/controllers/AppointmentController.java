@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.project.back_end.dto.AppointmentCreateRequest;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.services.AppointmentService;
+import com.project.back_end.dto.AppointmentDTO;
 
 import jakarta.validation.Valid;
 
@@ -49,7 +50,7 @@ public class AppointmentController {
 
     // POST /appointments (Authorization: Bearer <token>)
     @PostMapping
-    public ResponseEntity<Void> bookAppointmentBearer(
+    public ResponseEntity<AppointmentDTO> bookAppointmentBearer(
             @RequestAttribute("token") String token,
             @Valid @RequestBody AppointmentCreateRequest request) {
 
@@ -60,7 +61,8 @@ public class AppointmentController {
 
         URI location = URI.create("/appointments/" + saved.getId());
 
-        return ResponseEntity.created(location).build();
+        AppointmentDTO body = appointmentMapper.toDto(saved);
+        return ResponseEntity.created(location).body(body);
 
     }
 
