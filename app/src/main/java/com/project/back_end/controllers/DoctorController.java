@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,6 +61,7 @@ public class DoctorController {
     }
 
     // 1) Disponibilidade do médico
+    @Hidden
     @GetMapping("/availability/{user}/{doctorId}/{date}/{token}")
     public ResponseEntity<?> getAvailability(@PathVariable String user,
             @PathVariable Long doctorId,
@@ -86,6 +90,7 @@ public class DoctorController {
 
     // 3) Adicionar novo médico (somente admin) (Authorization: Bearer <token>)
 
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<Map<String, String>> addDoctorBearer(
             @RequestAttribute("token") String token,
@@ -99,6 +104,7 @@ public class DoctorController {
     }
 
     // 3) Adicionar novo médico (somente admin)
+    @Hidden
     @PostMapping("/{token}")
     public ResponseEntity<Map<String, String>> addDoctor(@PathVariable String token,
             @Valid @RequestBody Doctor doctor) {
@@ -117,6 +123,7 @@ public class DoctorController {
     }
 
     // 5) Atualizar médico (somente admin) (Authorization: Bearer <token>)
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping
     public ResponseEntity<Map<String, String>> updateDoctorBearer(
             @RequestAttribute("token") String token,
@@ -130,6 +137,7 @@ public class DoctorController {
     }
 
     // 5) Atualizar médico (somente admin)
+    @Hidden
     @PutMapping("/{token}")
     public ResponseEntity<Map<String, String>> updateDoctor(@PathVariable String token,
             @Valid @RequestBody Doctor doctor) {
@@ -142,6 +150,7 @@ public class DoctorController {
     }
 
     // 6) Excluir médico (somente admin) (Authorization: Bearer <token>)
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteDoctorBearer(
             @PathVariable Long id,
@@ -155,6 +164,7 @@ public class DoctorController {
     }
 
     // 6) Excluir médico (somente admin)
+    @Hidden
     @DeleteMapping("/{id}/{token}")
     public ResponseEntity<Map<String, String>> deleteDoctor(@PathVariable long id,
             @PathVariable String token) {
