@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import jakarta.validation.Valid;
 
 import java.util.HashMap;
@@ -27,6 +30,7 @@ public class PatientController {
     }
 
     // 1) Obter detalhes do paciente (Authorization: Bearer <token>)
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping
     public ResponseEntity<?> getPatientDetailsBearer(@RequestAttribute("token") String token) {
         Map<String, Object> patient = patientService.getPatientDetails(token);
@@ -36,6 +40,7 @@ public class PatientController {
     /**
      * @deprecated Use GET /patient (Authorization: Bearer <token>)
      */
+    @Hidden
     @Deprecated
     // 1) Obter detalhes do paciente (LEGADO: token na URL)
     @GetMapping("/{token}")
@@ -76,6 +81,7 @@ public class PatientController {
     }
 
     // 4) Obter consultas do paciente (Authorization: Bearer <token>)
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}/appointments")
     public ResponseEntity<?> getAppointmentsBearer(@PathVariable Long id,
             @RequestAttribute("token") String token) {
@@ -83,6 +89,7 @@ public class PatientController {
     }
 
     // 4) Obter consultas do paciente
+    @Hidden
     @GetMapping("/{id}/{token}")
     public ResponseEntity<?> getAppointments(@PathVariable Long id,
             @PathVariable String token) {
@@ -95,6 +102,7 @@ public class PatientController {
 
     // 5) Consultas do paciente com filtros via query params (REST)
     // GET /patient/appointments?condition=past&doctor=Joao
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/appointments")
     public ResponseEntity<?> listAppointments(
             @RequestParam(required = false) String condition,
@@ -108,6 +116,7 @@ public class PatientController {
      * @deprecated Use GET /patient/appointments?condition=...&doctor=...
      *             (Authorization: Bearer <token>)
      */
+    @Hidden
     @Deprecated
     @GetMapping("/filter/{condition}/{name}")
     public ResponseEntity<?> filterAppointmentsBearer(@PathVariable String condition,
@@ -121,6 +130,7 @@ public class PatientController {
      * @deprecated Use GET /patient/appointments?condition=...&doctor=...
      *             (Authorization: Bearer <token>)
      */
+    @Hidden
     @Deprecated
     @GetMapping("/filter/{condition}/{name}/{token}")
     public ResponseEntity<?> filterAppointments(@PathVariable String condition,
