@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import com.project.back_end.dto.AppointmentCreateRequest;
 import com.project.back_end.models.Appointment;
 import com.project.back_end.services.AppointmentService;
@@ -25,6 +27,7 @@ import jakarta.validation.Valid;
 
 import com.project.back_end.mappers.AppointmentMapper;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/appointments")
 public class AppointmentController {
