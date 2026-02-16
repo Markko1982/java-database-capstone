@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
-import java.util.HashMap;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -42,6 +44,7 @@ public class PrescriptionController {
     }
 
     // 1) Salvar prescrição (somente médico) (Authorization: Bearer <token>)
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<Map<String, String>> savePrescriptionBearer(
             @RequestHeader(value = "Authorization", required = false) String authorization,
@@ -60,6 +63,8 @@ public class PrescriptionController {
     }
 
     // 1) Salvar prescrição (somente médico)
+    @Hidden
+    @Deprecated
     @PostMapping("/{token}")
     public ResponseEntity<Map<String, String>> savePrescription(@PathVariable String token,
             @RequestBody Prescription prescription) {
@@ -72,6 +77,7 @@ public class PrescriptionController {
 
     // 2) Obter prescrição por appointmentId (somente médico) (Authorization: Bearer
     // <token>)
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{appointmentId}")
     public ResponseEntity<Map<String, Object>> getPrescriptionBearer(
             @PathVariable Long appointmentId,
@@ -93,6 +99,8 @@ public class PrescriptionController {
     }
 
     // 2) Obter prescrição por appointmentId (somente médico)
+    @Hidden
+    @Deprecated
     @GetMapping("/{appointmentId}/{token}")
     public ResponseEntity<Map<String, Object>> getPrescription(@PathVariable Long appointmentId,
             @PathVariable String token) {
