@@ -63,6 +63,9 @@ public class PrescriptionController {
     }
 
     // 1) Salvar prescrição (somente médico)
+    /**
+     * @deprecated Use POST /prescription (Authorization: Bearer <token>)
+     */
     @Hidden
     @Deprecated
     @PostMapping("/{token}")
@@ -99,6 +102,10 @@ public class PrescriptionController {
     }
 
     // 2) Obter prescrição por appointmentId (somente médico)
+    /**
+     * @deprecated Use GET /prescription/{appointmentId} (Authorization: Bearer
+     *             <token>)
+     */
     @Hidden
     @Deprecated
     @GetMapping("/{appointmentId}/{token}")

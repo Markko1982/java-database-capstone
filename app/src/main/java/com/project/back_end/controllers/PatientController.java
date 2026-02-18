@@ -89,7 +89,12 @@ public class PatientController {
     }
 
     // 4) Obter consultas do paciente
+    /**
+     * @deprecated Use GET /patient/{id}/appointments (Authorization: Bearer
+     *             <token>)
+     */
     @Hidden
+    @Deprecated
     @GetMapping("/{id}/{token}")
     public ResponseEntity<?> getAppointments(@PathVariable Long id,
             @PathVariable String token) {
