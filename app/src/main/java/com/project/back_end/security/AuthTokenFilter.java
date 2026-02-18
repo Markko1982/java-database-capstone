@@ -73,6 +73,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 // patient (Bearer)
                 new Rule("GET", "/patient", "patient"),
                 new Rule("GET", "/patient/{id}/appointments", "patient"),
+                new Rule("GET", "/patient/appointments", "patient"),
                 new Rule("GET", "/patient/filter/{condition}/{name}", "patient"),
 
                 // doctor (Bearer)
