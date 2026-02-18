@@ -1,10 +1,13 @@
 package com.project.back_end.mvc;
 
-import com.project.back_end.services.Service; // <-- Não se esqueça de adicionar este import!
+import com.project.back_end.services.Service;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
+@Hidden
 @Controller("mvcDashboardController")
 public class DashboardController {
 
@@ -20,7 +23,8 @@ public class DashboardController {
     public String onDashboard(@PathVariable String token) {
         // Agora a variável 'service' existe e pode ser usada
         var check = service.validateToken(token, "admin");
-        if (check.getStatusCode().is2xxSuccessful()) return "redirect:/";
+        if (check.getStatusCode().is2xxSuccessful())
+            return "redirect:/";
         return "adminDashboard";
     }
 
@@ -28,7 +32,8 @@ public class DashboardController {
     public String onDoctorDashboard(@PathVariable String token) {
         // Agora a variável 'service' existe e pode ser usada
         var check = service.validateToken(token, "doctor");
-        if (check.getStatusCode().is2xxSuccessful()) return "redirect:/";
+        if (check.getStatusCode().is2xxSuccessful())
+            return "redirect:/";
         return "doctorDashboard";
     }
 }
