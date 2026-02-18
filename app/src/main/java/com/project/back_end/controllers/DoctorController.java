@@ -46,6 +46,7 @@ public class DoctorController {
     }
 
     // 1) Disponibilidade do médico (Authorization: Bearer <token>)
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/availability/{user}/{doctorId}/{date}")
     public ResponseEntity<?> getAvailabilityBearer(@PathVariable String user,
             @PathVariable Long doctorId,
@@ -61,7 +62,12 @@ public class DoctorController {
     }
 
     // 1) Disponibilidade do médico
+    /**
+     * @deprecated Use GET /doctor/availability/{user}/{doctorId}/{date}
+     *             (Authorization: Bearer <token>)
+     */
     @Hidden
+    @Deprecated
     @GetMapping("/availability/{user}/{doctorId}/{date}/{token}")
     public ResponseEntity<?> getAvailability(@PathVariable String user,
             @PathVariable Long doctorId,
@@ -104,8 +110,13 @@ public class DoctorController {
     }
 
     // 3) Adicionar novo médico (somente admin)
+    /**
+     * @deprecated Use POST /doctor (Authorization: Bearer <token>)
+     */
     @Hidden
+    @Deprecated
     @PostMapping("/{token}")
+
     public ResponseEntity<Map<String, String>> addDoctor(@PathVariable String token,
             @Valid @RequestBody Doctor doctor) {
 
@@ -137,8 +148,13 @@ public class DoctorController {
     }
 
     // 5) Atualizar médico (somente admin)
+    /**
+     * @deprecated Use PUT /doctor (Authorization: Bearer <token>)
+     */
     @Hidden
+    @Deprecated
     @PutMapping("/{token}")
+
     public ResponseEntity<Map<String, String>> updateDoctor(@PathVariable String token,
             @Valid @RequestBody Doctor doctor) {
 
@@ -164,7 +180,11 @@ public class DoctorController {
     }
 
     // 6) Excluir médico (somente admin)
+    /**
+     * @deprecated Use DELETE /doctor/{id} (Authorization: Bearer <token>)
+     */
     @Hidden
+    @Deprecated
     @DeleteMapping("/{id}/{token}")
     public ResponseEntity<Map<String, String>> deleteDoctor(@PathVariable long id,
             @PathVariable String token) {
