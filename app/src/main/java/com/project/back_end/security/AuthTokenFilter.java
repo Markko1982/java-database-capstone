@@ -53,6 +53,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String doctorBase = this.apiPath + "doctor";
         String prescriptionBase = this.apiPath + "prescription";
+        String adminBase = this.apiPath + "admin";
 
         // ajuste aqui conforme suas rotas reais
         this.publicRules = List.of(
@@ -61,7 +62,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                 new Rule("GET", doctorBase, null),
                 new Rule("GET", doctorBase + "/filter/**", null),
-                new Rule("POST", doctorBase + "/login", null));
+                new Rule("POST", doctorBase + "/login", null),
+                new Rule("POST", adminBase + "/login", null));
 
         this.protectedRules = List.of(
                 // appointments (Bearer)
