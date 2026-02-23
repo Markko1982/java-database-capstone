@@ -1,4 +1,6 @@
 # Smart Clinic Management System
+[![CI](https://github.com/Markko1982/java-database-capstone/actions/workflows/compile-backend.yml/badge.svg?branch=main)](https://github.com/Markko1982/java-database-capstone/actions/workflows/compile-backend.yml)
+[![codecov](https://codecov.io/gh/Markko1982/java-database-capstone/branch/main/graph/badge.svg)](https://codecov.io/gh/Markko1982/java-database-capstone)
 
 Capstone project para praticar desenvolvimento com **Java + Spring Boot**, integrando **MySQL (relacional)** e **MongoDB (documentos)**, com **Docker Compose** para ambiente local.
 

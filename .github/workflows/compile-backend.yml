@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -45,4 +46,13 @@ jobs:
         working-directory: ${{ env.BACKEND_PATH }}
         run: |
           chmod +x mvnw
-          ./mvnw -q clean test
+          ./mvnw -q clean verify
+
+      - name: Upload coverage (JaCoCo) to Codecov
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: ${{ env.BACKEND_PATH }}/target/site/jacoco/jacoco.xml
+          flags: backend
+          fail_ci_if_error: true
