@@ -7,6 +7,13 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BACKEND_PATH: "app"
 
@@ -32,6 +39,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+          cache: maven
 
       - name: Test (Maven Wrapper)
         working-directory: ${{ env.BACKEND_PATH }}
