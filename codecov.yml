@@ -9,6 +9,14 @@ comment:
   require_base: true
   require_head: true
 
+# Ignoramos APENAS boilerplate/infra (sem lógica de negócio).
+# Mantemos controllers/services/repos/security cobertos.
+ignore:
+  # Bootstrap do Spring (apenas startup)
+  - "app/src/main/java/com/project/back_end/BackEndApplication.java"
+  # Configuração/wiring (Spring/Mongo/OpenAPI/Web) — sem regra de negócio
+  - "app/src/main/java/com/project/back_end/config/**"
+
 coverage:
   status:
     # Status 1: piso mínimo absoluto
@@ -36,6 +44,4 @@ coverage:
         flags:
           - backend
         informational: false
-
-# Intencionalmente SEM ignore neste ticket:
-# só vamos ignorar pastas depois de mapear pacotes reais e justificar (ex.: código gerado, boilerplate, etc.)
+        
