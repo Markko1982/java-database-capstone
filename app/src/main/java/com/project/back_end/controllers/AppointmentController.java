@@ -29,7 +29,7 @@ import com.project.back_end.mappers.AppointmentMapper;
 
 @SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/appointments")
+@RequestMapping("${api.path}" + "appointments")
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
