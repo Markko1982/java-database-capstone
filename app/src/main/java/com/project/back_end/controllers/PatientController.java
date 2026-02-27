@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/patient")
+@RequestMapping("${api.path}" + "patient")
 public class PatientController {
 
     private final PatientService patientService;
