@@ -23,7 +23,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final Service service;
     private final ObjectMapper objectMapper;
-    private final String apiPath; // ex: "/api/" ou ""
+    private final String apiPath; // ex: "/api/"
 
     private static class Rule {
         final String httpMethod;
@@ -54,11 +54,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String doctorBase = this.apiPath + "doctor";
         String prescriptionBase = this.apiPath + "prescription";
         String adminBase = this.apiPath + "admin";
+        String patientBase = this.apiPath + "patient";
+        String appointmentsBase = this.apiPath + "appointments";
 
         // ajuste aqui conforme suas rotas reais
         this.publicRules = List.of(
-                new Rule("POST", "/patient", null),
-                new Rule("POST", "/patient/login", null),
+                new Rule("POST", patientBase, null),
+                new Rule("POST", patientBase + "/login", null),
 
                 new Rule("GET", doctorBase, null),
                 new Rule("GET", doctorBase + "/filter/**", null),
@@ -67,16 +69,16 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         this.protectedRules = List.of(
                 // appointments (Bearer)
-                new Rule("GET", "/appointments/{date}/{patientName}", "doctor"),
-                new Rule("POST", "/appointments", "patient"),
-                new Rule("PUT", "/appointments", "patient"),
-                new Rule("DELETE", "/appointments/{id}", "patient"),
+                new Rule("GET", appointmentsBase + "/{date}/{patientName}", "doctor"),
+                new Rule("POST", appointmentsBase, "patient"),
+                new Rule("PUT", appointmentsBase, "patient"),
+                new Rule("DELETE", appointmentsBase + "/{id}", "patient"),
 
                 // patient (Bearer)
-                new Rule("GET", "/patient", "patient"),
-                new Rule("GET", "/patient/{id}/appointments", "patient"),
-                new Rule("GET", "/patient/appointments", "patient"),
-                new Rule("GET", "/patient/filter/{condition}/{name}", "patient"),
+                new Rule("GET", patientBase, "patient"),
+                new Rule("GET", patientBase + "/{id}/appointments", "patient"),
+                new Rule("GET", patientBase + "/appointments", "patient"),
+                new Rule("GET", patientBase + "/filter/{condition}/{name}", "patient"),
 
                 // doctor (Bearer)
                 new Rule("GET", doctorBase + "/availability/{user}/{doctorId}/{date}", "@user"),
@@ -187,10 +189,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private String normalizeApiPath(String p) {
         if (p == null)
-            return "";
+            return "/";
         String r = p.trim();
         if (r.isEmpty())
-            return "";
+            return "/";
         if (!r.startsWith("/"))
             r = "/" + r;
         if (!r.endsWith("/"))
