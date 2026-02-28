@@ -66,6 +66,9 @@ SPRING_PROFILES_ACTIVE=local ./mvnw spring-boot:run
 
 Aplicação: `http://localhost:8080`
 
+> Dica: você pode configurar um prefixo base para as rotas REST via `API_PATH` (ex.: `API_PATH=/api/`).
+> Com isso, as rotas ficam como `http://localhost:8080/api/patient`, `http://localhost:8080/api/doctor`, etc.
+
 ## OpenAPI / Swagger
 
 Com a aplicação rodando:
@@ -89,6 +92,7 @@ Arquivo base: `.env.example`
 - `DB_PASS` — senha do MySQL
 - `MONGO_URI` — URI do MongoDB
 - `JWT_SECRET` — segredo para tokens JWT (local/dev)
+- `API_PATH` — prefixo base das rotas da API (default `/`). Ex.: `/api/` (mantenha a barra `/` no final).
 
 ## Documentação do domínio
 
