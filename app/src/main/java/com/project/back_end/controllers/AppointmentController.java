@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -62,7 +63,11 @@ public class AppointmentController {
         Appointment saved = appointmentService
                 .bookAppointmentOrThrow(appointment, token, request.getDoctorId());
 
-        URI location = URI.create("/appointments/" + saved.getId());
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(saved.getId())
+                .toUri();
 
         AppointmentDTO body = appointmentMapper.toDto(saved);
         return ResponseEntity.created(location).body(body);
