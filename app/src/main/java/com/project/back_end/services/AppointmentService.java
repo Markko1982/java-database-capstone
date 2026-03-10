@@ -20,18 +20,39 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final TokenService tokenService;
-    private final com.project.back_end.services.Service service;
+    private final DoctorService doctorService;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
             PatientRepository patientRepository,
             DoctorRepository doctorRepository,
             TokenService tokenService,
-            com.project.back_end.services.Service service) {
+            DoctorService doctorService) {
         this.appointmentRepository = appointmentRepository;
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.tokenService = tokenService;
-        this.service = service;
+        this.doctorService = doctorService;
+
+    }
+
+    public int validateAppointment(Appointment appointment) {
+        if (appointment == null || appointment.getDoctorId() == null || appointment.getAppointmentTime() == null) {
+            return 0;
+        }
+
+        Optional<Doctor> optDoc = doctorRepository.findById(appointment.getDoctorId());
+        if (optDoc.isEmpty())
+            return -1;
+
+        LocalDate date = appointment.getAppointmentTime().toLocalDate();
+        List<String> available = doctorService.getDoctorAvailability(appointment.getDoctorId(), date);
+        if (available == null || available.isEmpty())
+            return 0;
+
+        String desired = appointment.getAppointmentTime()
+                .toLocalTime().withSecond(0).withNano(0).toString().substring(0, 5);
+
+        return available.contains(desired) ? 1 : 0;
     }
 
     // ==============================
@@ -58,7 +79,7 @@ public class AppointmentService {
             throw new IllegalArgumentException("Agendamento é obrigatório.");
         }
 
-        int validation = service.validateAppointment(appointment);
+        int validation = validateAppointment(appointment);
 
         if (validation == -1) {
             throw new jakarta.persistence.EntityNotFoundException("Médico não encontrado.");
@@ -113,13 +134,13 @@ public class AppointmentService {
 
         appointment.setPatient(existing.getPatient());
 
-        int valid = service.validateAppointment(appointment);
+        int validation = validateAppointment(appointment);
 
-        if (valid == -1) {
+        if (validation == -1) {
             throw new jakarta.persistence.EntityNotFoundException("Médico inválido.");
         }
 
-        if (valid == 0) {
+        if (validation == 0) {
             throw new IllegalArgumentException("Horário indisponível.");
         }
 

@@ -1,7 +1,7 @@
 package com.project.back_end.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.back_end.services.Service;
+import com.project.back_end.services.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,14 +21,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher matcher = new AntPathMatcher();
 
-    private final Service service;
+    private final AuthService authService;
     private final ObjectMapper objectMapper;
-    private final String apiPath; // ex: "/api/"
+    private final String apiPath;
 
     private static class Rule {
         final String httpMethod;
         final String pattern;
-        final String roleOrVar; // ex: "doctor", "patient", "admin" ou "@user" (vem da rota)
+        final String roleOrVar;
 
         Rule(String httpMethod, String pattern, String roleOrVar) {
             this.httpMethod = httpMethod;
@@ -37,17 +37,14 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         }
     }
 
-    // Rotas públicas (não exigem token)
     private final List<Rule> publicRules;
-
-    // Rotas protegidas (exigem Bearer + validação de role)
     private final List<Rule> protectedRules;
 
     public AuthTokenFilter(
-            Service service,
+            AuthService authService,
             ObjectMapper objectMapper,
             @Value("${api.path:}") String apiPath) {
-        this.service = service;
+        this.authService = authService;
         this.objectMapper = objectMapper;
         this.apiPath = normalizeApiPath(apiPath);
 
@@ -57,7 +54,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String patientBase = this.apiPath + "patient";
         String appointmentsBase = this.apiPath + "appointments";
 
-        // ajuste aqui conforme suas rotas reais
         this.publicRules = List.of(
                 new Rule("POST", patientBase, null),
                 new Rule("POST", patientBase + "/login", null),
@@ -68,25 +64,21 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 new Rule("POST", adminBase + "/login", null));
 
         this.protectedRules = List.of(
-                // appointments (Bearer)
                 new Rule("GET", appointmentsBase + "/{date}/{patientName}", "doctor"),
                 new Rule("POST", appointmentsBase, "patient"),
                 new Rule("PUT", appointmentsBase, "patient"),
                 new Rule("DELETE", appointmentsBase + "/{id}", "patient"),
 
-                // patient (Bearer)
                 new Rule("GET", patientBase, "patient"),
                 new Rule("GET", patientBase + "/{id}/appointments", "patient"),
                 new Rule("GET", patientBase + "/appointments", "patient"),
                 new Rule("GET", patientBase + "/filter/{condition}/{name}", "patient"),
 
-                // doctor (Bearer)
                 new Rule("GET", doctorBase + "/availability/{user}/{doctorId}/{date}", "@user"),
                 new Rule("POST", doctorBase, "admin"),
                 new Rule("PUT", doctorBase, "admin"),
                 new Rule("DELETE", doctorBase + "/{id}", "admin"),
 
-                // prescription (Bearer)
                 new Rule("POST", prescriptionBase, "doctor"),
                 new Rule("GET", prescriptionBase + "/{appointmentId}", "doctor"));
     }
@@ -100,13 +92,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         String path = request.getRequestURI();
 
-        // Preflight CORS
         if ("OPTIONS".equalsIgnoreCase(method)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Se for público, segue
         if (matchesAny(publicRules, method, path)) {
             filterChain.doFilter(request, response);
             return;
@@ -114,7 +104,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         Rule protectedRule = firstMatch(protectedRules, method, path);
         if (protectedRule == null) {
-            // não mapeado como protegido → deixa passar (ou você pode bloquear por padrão)
             filterChain.doFilter(request, response);
             return;
         }
@@ -128,7 +117,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String requiredRole = resolveRole(protectedRule, path);
         if (requiredRole != null) {
-            ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, requiredRole);
+            ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, requiredRole);
             if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
                 int status = tokenCheck.getStatusCodeValue();
                 Map<String, String> body = tokenCheck.getBody() != null
@@ -139,9 +128,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             }
         }
 
-        // token válido → disponibiliza para o controller/service
         request.setAttribute("token", token);
-
         filterChain.doFilter(request, response);
     }
 
@@ -162,7 +149,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         if (!rule.roleOrVar.startsWith("@"))
             return rule.roleOrVar;
 
-        // role dinâmica vinda de variável de rota, ex "@user"
         String varName = rule.roleOrVar.substring(1);
         Map<String, String> vars = matcher.extractUriTemplateVariables(rule.pattern, path);
         return vars.get(varName);
@@ -172,7 +158,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         if (authorization == null)
             return null;
 
-        // aceita "Bearer " com qualquer casing
         if (authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
             String token = authorization.substring(7).trim();
             return token.isEmpty() ? null : token;

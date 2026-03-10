@@ -1,6 +1,6 @@
 package com.project.back_end.mvc;
 
-import com.project.back_end.services.Service;
+import com.project.back_end.services.AuthService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,18 +11,15 @@ import io.swagger.v3.oas.annotations.Hidden;
 @Controller("mvcDashboardController")
 public class DashboardController {
 
-    // 1. DECLARE O CAMPO DO SERVIÇO
-    private final Service service;
+    private final AuthService authService;
 
-    // 2. CRIE O CONSTRUTOR PARA A INJEÇÃO DE DEPENDÊNCIA
-    public DashboardController(Service service) {
-        this.service = service;
+    public DashboardController(AuthService authService) {
+        this.authService = authService;
     }
 
     @GetMapping("/admindashboard/{token}")
     public String onDashboard(@PathVariable String token) {
-        // Agora a variável 'service' existe e pode ser usada
-        var check = service.validateToken(token, "admin");
+        var check = authService.validateToken(token, "admin");
         if (check.getStatusCode().is2xxSuccessful())
             return "redirect:/";
         return "adminDashboard";
@@ -30,8 +27,7 @@ public class DashboardController {
 
     @GetMapping("/doctordashboard/{token}")
     public String onDoctorDashboard(@PathVariable String token) {
-        // Agora a variável 'service' existe e pode ser usada
-        var check = service.validateToken(token, "doctor");
+        var check = authService.validateToken(token, "doctor");
         if (check.getStatusCode().is2xxSuccessful())
             return "redirect:/";
         return "doctorDashboard";

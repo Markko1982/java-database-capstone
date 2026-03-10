@@ -1,27 +1,24 @@
 package com.project.back_end.controllers;
 
+import com.project.back_end.dto.ApiAuthResponse;
 import com.project.back_end.models.Admin;
-import com.project.back_end.services.Service;
+import com.project.back_end.services.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("${api.path}" + "admin")
 public class AdminController {
 
-    private final Service service;
+    private final AuthService authService;
 
-    public AdminController(Service service) {
-        this.service = service;
+    public AdminController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> adminLogin(@Valid @RequestBody Admin receivedAdmin) {
-    return service.validateAdmin(receivedAdmin);
-}
-
+    public ResponseEntity<ApiAuthResponse> adminLogin(@Valid @RequestBody Admin receivedAdmin) {
+        return authService.validateAdmin(receivedAdmin);
+    }
 }

@@ -2,6 +2,8 @@ package com.project.back_end.services;
 
 import com.project.back_end.models.Prescription;
 import com.project.back_end.repo.mongo.PrescriptionRepository;
+import com.project.back_end.dto.ApiMessageResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,15 +22,14 @@ public class PrescriptionService {
     }
 
     /** 1) Salvar prescrição */
-    public ResponseEntity<Map<String, String>> savePrescription(Prescription prescription) {
-        Map<String, String> body = new HashMap<>();
+    public ResponseEntity<ApiMessageResponse> savePrescription(Prescription prescription) {
         try {
             prescriptionRepository.save(prescription);
-            body.put("message", "Prescrição salva");
-            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiMessageResponse("Prescrição salva"));
         } catch (Exception e) {
-            body.put("message", "Erro ao salvar prescrição");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiMessageResponse("Erro ao salvar prescrição"));
         }
     }
 

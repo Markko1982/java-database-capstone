@@ -4,6 +4,8 @@ import com.project.back_end.dto.Login;
 import com.project.back_end.models.Doctor;
 import com.project.back_end.repo.jpa.AppointmentRepository;
 import com.project.back_end.repo.jpa.DoctorRepository;
+import com.project.back_end.dto.ApiAuthResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class DoctorService {
         Optional<Doctor> opt = doctorRepository.findById(doctorId);
         if (opt.isEmpty())
             return Collections.emptyList();
+
         Doctor d = opt.get();
         List<String> available = new ArrayList<>(
                 Optional.ofNullable(d.getAvailableTimes()).orElse(Collections.emptyList()));
@@ -105,7 +108,6 @@ public class DoctorService {
         try {
             if (doctorRepository.findById(id).isEmpty())
                 return -1;
-            // LINHA CORRIGIDA ABAIXO
             appointmentRepository.deleteAllByDoctor_Id(id);
             doctorRepository.deleteById(id);
             return 1;
@@ -127,21 +129,19 @@ public class DoctorService {
         throw new RuntimeException("Erro interno ao excluir médico.");
     }
 
-    public ResponseEntity<Map<String, String>> validateDoctor(Login login) {
-        Map<String, String> body = new HashMap<>();
+    public ResponseEntity<ApiAuthResponse> validateDoctor(Login login) {
         try {
             Doctor d = doctorRepository.findByEmail(login.getIdentifier());
             if (d == null || !Objects.equals(d.getPassword(), login.getPassword())) {
-                body.put("message", "Credenciais inválidas.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ApiAuthResponse(null, "Credenciais inválidas."));
             }
+
             String token = tokenService.generateToken(d.getEmail());
-            body.put("token", token);
-            body.put("message", "Login realizado com sucesso.");
-            return ResponseEntity.ok(body);
+            return ResponseEntity.ok(new ApiAuthResponse(token, "Login realizado com sucesso."));
         } catch (Exception e) {
-            body.put("message", "Erro interno.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiAuthResponse(null, "Erro interno."));
         }
     }
 
@@ -195,14 +195,46 @@ public class DoctorService {
         return res;
     }
 
+    public Map<String, Object> filterDoctor(String name, String specialty, String time) {
+        String n = name == null ? "" : name.trim();
+        String s = specialty == null ? "" : specialty.trim();
+        String t = time == null ? "" : time.trim().toUpperCase();
+
+        if (!n.isEmpty() && !s.isEmpty() && !t.isEmpty()) {
+            return filterDoctorsByNameSpecilityandTime(n, s, t);
+        }
+        if (!n.isEmpty() && !t.isEmpty()) {
+            return filterDoctorByNameAndTime(n, t);
+        }
+        if (!n.isEmpty() && !s.isEmpty()) {
+            return filterDoctorByNameAndSpecility(n, s);
+        }
+        if (!s.isEmpty() && !t.isEmpty()) {
+            return filterDoctorByTimeAndSpecility(s, t);
+        }
+        if (!s.isEmpty()) {
+            return filterDoctorBySpecility(s);
+        }
+        if (!t.isEmpty()) {
+            return filterDoctorsByTime(t);
+        }
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("doctors", getDoctors());
+        return res;
+    }
+
     private List<Doctor> filterDoctorByTime(List<Doctor> doctors, String amOrPm) {
         if (amOrPm == null || amOrPm.isBlank())
             return doctors;
+
         boolean isAM = amOrPm.trim().equalsIgnoreCase("AM");
+
         return doctors.stream().filter(d -> {
             List<String> times = d.getAvailableTimes();
             if (times == null)
                 return false;
+
             return times.stream().anyMatch(t -> {
                 try {
                     LocalTime lt = LocalTime.parse(t);

@@ -1,9 +1,13 @@
 package com.project.back_end.controllers;
 
+import com.project.back_end.dto.ApiAuthResponse;
+import com.project.back_end.dto.ApiMessageResponse;
 import com.project.back_end.dto.Login;
 import com.project.back_end.models.Patient;
+import com.project.back_end.services.AuthService;
 import com.project.back_end.services.PatientService;
-import com.project.back_end.services.Service;
+import com.project.back_end.dto.ApiMessageResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,18 +19,17 @@ import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("${api.path}" + "patient")
 public class PatientController {
 
     private final PatientService patientService;
-    private final Service service;
+    private final AuthService authService;
 
-    public PatientController(PatientService patientService, Service service) {
+    public PatientController(PatientService patientService, AuthService authService) {
         this.patientService = patientService;
-        this.service = service;
+        this.authService = authService;
     }
 
     // 1) Obter detalhes do paciente (Authorization: Bearer <token>)
@@ -42,42 +45,39 @@ public class PatientController {
      */
     @Hidden
     @Deprecated
-    // 1) Obter detalhes do paciente (LEGADO: token na URL)
     @GetMapping("/{token}")
     public ResponseEntity<?> getPatientDetails(@PathVariable String token) {
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+        ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
             return tokenCheck;
+        }
 
         return ResponseEntity.ok(patientService.getPatientDetails(token));
-
     }
 
     // 2) Criar novo paciente
     @PostMapping
-    public ResponseEntity<Map<String, String>> createPatient(@Valid @RequestBody Patient patient) {
-        Map<String, String> body = new HashMap<>();
-
-        boolean okToCreate = service.validatePatient(patient);
+    public ResponseEntity<ApiMessageResponse> createPatient(@Valid @RequestBody Patient patient) {
+        boolean okToCreate = patientService.validatePatient(patient);
         if (!okToCreate) {
-            body.put("message", "Paciente com e-mail ou número de telefone já existe");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiMessageResponse("Paciente com e-mail ou número de telefone já existe"));
         }
 
         int res = patientService.createPatient(patient);
         if (res == 1) {
-            body.put("message", "Cadastro bem-sucedido");
-            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiMessageResponse("Cadastro bem-sucedido"));
         } else {
-            body.put("message", "Erro interno do servidor");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiMessageResponse("Erro interno do servidor"));
         }
     }
 
     // 3) Login do paciente
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> patientLogin(@Valid @RequestBody Login login) {
-        return service.validatePatientLogin(login);
+    public ResponseEntity<ApiAuthResponse> patientLogin(@Valid @RequestBody Login login) {
+        return authService.validatePatientLogin(login);
     }
 
     // 4) Obter consultas do paciente (Authorization: Bearer <token>)
@@ -98,9 +98,10 @@ public class PatientController {
     @GetMapping("/{id}/{token}")
     public ResponseEntity<?> getAppointments(@PathVariable Long id,
             @PathVariable String token) {
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+        ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
             return tokenCheck;
+        }
 
         return patientService.getPatientAppointment(id, token);
     }
@@ -113,7 +114,6 @@ public class PatientController {
             @RequestParam(required = false) String condition,
             @RequestParam(required = false) String doctor,
             @RequestAttribute("token") String token) {
-
         return patientService.filterPatient(condition, doctor, token);
     }
 
@@ -128,7 +128,6 @@ public class PatientController {
             @PathVariable String name,
             @RequestAttribute("token") String token) {
         return patientService.filterPatient(condition, name, token);
-
     }
 
     /**
@@ -141,11 +140,11 @@ public class PatientController {
     public ResponseEntity<?> filterAppointments(@PathVariable String condition,
             @PathVariable String name,
             @PathVariable String token) {
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "patient");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+        ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, "patient");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
             return tokenCheck;
+        }
 
         return patientService.filterPatient(condition, name, token);
-
     }
 }
