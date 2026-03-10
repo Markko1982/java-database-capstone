@@ -22,8 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.back_end.dto.Login;
 import com.project.back_end.models.Doctor;
+import com.project.back_end.services.AuthService;
 import com.project.back_end.services.DoctorService;
-import com.project.back_end.services.Service;
+import com.project.back_end.dto.ApiMessageResponse;
+import com.project.back_end.dto.ApiAuthResponse;
 
 import jakarta.validation.Valid;
 
@@ -32,11 +34,11 @@ import jakarta.validation.Valid;
 public class DoctorController {
 
     private final DoctorService doctorService;
-    private final Service service;
+    private final AuthService authService;
 
-    public DoctorController(DoctorService doctorService, Service service) {
+    public DoctorController(DoctorService doctorService, AuthService authService) {
         this.doctorService = doctorService;
-        this.service = service;
+        this.authService = authService;
     }
 
     private ResponseEntity<Map<String, String>> unauthorized(String message) {
@@ -74,9 +76,10 @@ public class DoctorController {
             @PathVariable String date,
             @PathVariable String token) {
 
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, user);
-        if (!tokenCheck.getStatusCode().is2xxSuccessful())
+        ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, user);
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
             return tokenCheck;
+        }
 
         LocalDate target = LocalDate.parse(date); // yyyy-MM-dd
         List<String> slots = doctorService.getDoctorAvailability(doctorId, target);
@@ -95,18 +98,16 @@ public class DoctorController {
     }
 
     // 3) Adicionar novo médico (somente admin) (Authorization: Bearer <token>)
-
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping
-    public ResponseEntity<Map<String, String>> addDoctorBearer(
+    public ResponseEntity<ApiMessageResponse> addDoctorBearer(
             @RequestAttribute("token") String token,
             @Valid @RequestBody Doctor doctor) {
 
         doctorService.saveDoctorOrThrow(doctor);
 
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Médico cadastrado com sucesso.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiMessageResponse("Médico cadastrado com sucesso."));
     }
 
     // 3) Adicionar novo médico (somente admin)
@@ -116,35 +117,31 @@ public class DoctorController {
     @Hidden
     @Deprecated
     @PostMapping("/{token}")
-
-    public ResponseEntity<Map<String, String>> addDoctor(@PathVariable String token,
+    public ResponseEntity<ApiMessageResponse> addDoctor(@PathVariable String token,
             @Valid @RequestBody Doctor doctor) {
 
         doctorService.saveDoctorOrThrow(doctor);
 
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Médico cadastrado com sucesso.");
-        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiMessageResponse("Médico cadastrado com sucesso."));
     }
 
     // 4) Login do médico
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> doctorLogin(@Valid @RequestBody Login login) {
+    public ResponseEntity<ApiAuthResponse> doctorLogin(@Valid @RequestBody Login login) {
         return doctorService.validateDoctor(login);
     }
 
     // 5) Atualizar médico (somente admin) (Authorization: Bearer <token>)
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping
-    public ResponseEntity<Map<String, String>> updateDoctorBearer(
+    public ResponseEntity<ApiMessageResponse> updateDoctorBearer(
             @RequestAttribute("token") String token,
             @Valid @RequestBody Doctor doctor) {
 
         doctorService.updateDoctorOrThrow(doctor);
 
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Médico atualizado");
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(new ApiMessageResponse("Médico atualizado"));
     }
 
     // 5) Atualizar médico (somente admin)
@@ -154,29 +151,24 @@ public class DoctorController {
     @Hidden
     @Deprecated
     @PutMapping("/{token}")
-
-    public ResponseEntity<Map<String, String>> updateDoctor(@PathVariable String token,
+    public ResponseEntity<ApiMessageResponse> updateDoctor(@PathVariable String token,
             @Valid @RequestBody Doctor doctor) {
 
         doctorService.updateDoctorOrThrow(doctor);
 
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Médico atualizado");
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(new ApiMessageResponse("Médico atualizado"));
     }
 
     // 6) Excluir médico (somente admin) (Authorization: Bearer <token>)
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteDoctorBearer(
+    public ResponseEntity<ApiMessageResponse> deleteDoctorBearer(
             @PathVariable Long id,
             @RequestAttribute("token") String token) {
 
         doctorService.deleteDoctorOrThrow(id);
 
-        Map<String, String> body = new HashMap<>();
-        body.put("message", "Médico excluído com sucesso");
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(new ApiMessageResponse("Médico excluído com sucesso"));
     }
 
     // 6) Excluir médico (somente admin)
@@ -186,23 +178,24 @@ public class DoctorController {
     @Hidden
     @Deprecated
     @DeleteMapping("/{id}/{token}")
-    public ResponseEntity<Map<String, String>> deleteDoctor(@PathVariable long id,
+    public ResponseEntity<ApiMessageResponse> deleteDoctor(@PathVariable long id,
             @PathVariable String token) {
-        ResponseEntity<Map<String, String>> tokenCheck = service.validateToken(token, "admin");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful())
-            return tokenCheck;
 
-        Map<String, String> body = new HashMap<>();
+        ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, "admin");
+        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(tokenCheck.getStatusCode())
+                    .body(new ApiMessageResponse(tokenCheck.getBody().get("message")));
+        }
+
         int result = doctorService.deleteDoctor(id);
         if (result == 1) {
-            body.put("message", "Médico excluído com sucesso");
-            return ResponseEntity.ok(body);
+            return ResponseEntity.ok(new ApiMessageResponse("Médico excluído com sucesso"));
         } else if (result == -1) {
-            body.put("message", "Médico não encontrado com id");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiMessageResponse("Médico não encontrado com id"));
         } else {
-            body.put("message", "Ocorreu algum erro interno");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiMessageResponse("Ocorreu algum erro interno"));
         }
     }
 
@@ -211,7 +204,8 @@ public class DoctorController {
     public ResponseEntity<Map<String, Object>> filterDoctors(@PathVariable String name,
             @PathVariable String time,
             @PathVariable("speciality") String specialty) {
-        Map<String, Object> res = service.filterDoctor(name, specialty, time);
+
+        Map<String, Object> res = doctorService.filterDoctor(name, specialty, time);
         return ResponseEntity.ok(res);
     }
 }

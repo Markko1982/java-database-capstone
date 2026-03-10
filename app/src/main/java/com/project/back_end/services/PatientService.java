@@ -42,6 +42,17 @@ public class PatientService {
         }
     }
 
+    public boolean validatePatient(Patient patient) {
+        if (patient == null)
+            return false;
+
+        String email = patient.getEmail();
+        String phone = patient.getPhone();
+
+        Patient existing = patientRepository.findByEmailOrPhone(email, phone);
+        return existing == null;
+    }
+
     /** 2) Consultas do paciente (valida o token e compara o ID) */
     public ResponseEntity<Map<String, Object>> getPatientAppointment(Long id, String token) {
         Map<String, Object> res = new HashMap<>();
