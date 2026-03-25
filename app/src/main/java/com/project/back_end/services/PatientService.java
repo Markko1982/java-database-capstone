@@ -7,12 +7,16 @@ import com.project.back_end.models.Patient;
 import com.project.back_end.repo.jpa.AppointmentRepository;
 import com.project.back_end.repo.jpa.DoctorRepository;
 import com.project.back_end.repo.jpa.PatientRepository;
+import com.project.back_end.exceptions.UnauthorizedException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class PatientService {
@@ -33,13 +37,8 @@ public class PatientService {
     }
 
     /** 1) Criar paciente */
-    public int createPatient(Patient patient) {
-        try {
-            patientRepository.save(patient);
-            return 1;
-        } catch (Exception e) {
-            return 0;
-        }
+    public void createPatient(Patient patient) {
+        patientRepository.save(patient);
     }
 
     public boolean validatePatient(Patient patient) {
@@ -56,87 +55,74 @@ public class PatientService {
     /** 2) Consultas do paciente (valida o token e compara o ID) */
     public ResponseEntity<Map<String, Object>> getPatientAppointment(Long id, String token) {
         Map<String, Object> res = new HashMap<>();
-        try {
-            if (!tokenService.validateToken(token, "patient")) {
-                res.put("message", "Token inválido ou expirado.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
-            }
 
-            String email = tokenService.getEmailFromToken(token);
-            Patient pFromToken = patientRepository.findByEmail(email);
-
-            if (pFromToken == null) {
-                res.put("message", "Token inválido ou expirado.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(res);
-            }
-
-            if (!Objects.equals(pFromToken.getId(), id)) {
-                res.put("message", "Acesso negado.");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
-            }
-
-            // LINHA CORRIGIDA ABAIXO
-            List<Appointment> appts = appointmentRepository.findByPatient_Id(id);
-
-            res.put("appointments", toDTOs(appts));
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            res.put("message", "Erro ao buscar consultas.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+        if (!tokenService.validateToken(token, "patient")) {
+            throw new UnauthorizedException("Token inválido ou expirado.");
         }
+
+        String email = tokenService.getEmailFromToken(token);
+        Patient pFromToken = patientRepository.findByEmail(email);
+
+        if (pFromToken == null) {
+            throw new UnauthorizedException("Token inválido ou expirado.");
+        }
+
+        if (!Objects.equals(pFromToken.getId(), id)) {
+            throw new SecurityException("Acesso negado.");
+        }
+
+        List<Appointment> appts = appointmentRepository.findByPatient_Id(id);
+
+        res.put("appointments", toDTOs(appts));
+        return ResponseEntity.ok(res);
     }
 
     /** 3) Filtra por condição (past/future) */
     public ResponseEntity<Map<String, Object>> filterByCondition(String condition, Long id) {
         Map<String, Object> res = new HashMap<>();
-        try {
-            int status = "past".equalsIgnoreCase(condition) ? 1 : 0;
-            List<Appointment> appts = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(id,
-                    status);
-            res.put("appointments", toDTOs(appts));
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            res.put("message", "Erro ao filtrar consultas.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
-        }
+
+        int status = "past".equalsIgnoreCase(condition) ? 1 : 0;
+        List<Appointment> appts = appointmentRepository.findByPatient_IdAndStatusOrderByAppointmentTimeAsc(id, status);
+
+        res.put("appointments", toDTOs(appts));
+        return ResponseEntity.ok(res);
     }
 
     /** 4) Filtra por nome do médico */
     public ResponseEntity<Map<String, Object>> filterByDoctor(String name, Long patientId) {
         Map<String, Object> res = new HashMap<>();
-        try {
-            List<Appointment> appts = appointmentRepository.filterByDoctorNameAndPatientId(name, patientId);
-            res.put("appointments", toDTOs(appts));
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            res.put("message", "Erro ao filtrar por médico.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
-        }
+
+        List<Appointment> appts = appointmentRepository.filterByDoctorNameAndPatientId(name, patientId);
+        res.put("appointments", toDTOs(appts));
+
+        return ResponseEntity.ok(res);
     }
 
     /** 5) Filtra por condição e nome do médico */
     public ResponseEntity<Map<String, Object>> filterByDoctorAndCondition(String condition, String name,
             long patientId) {
         Map<String, Object> res = new HashMap<>();
-        try {
-            int status = "past".equalsIgnoreCase(condition) ? 1 : 0;
-            List<Appointment> appts = appointmentRepository.filterByDoctorNameAndPatientIdAndStatus(name, patientId,
-                    status);
-            res.put("appointments", toDTOs(appts));
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            res.put("message", "Erro ao filtrar consultas.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
-        }
+
+        int status = "past".equalsIgnoreCase(condition) ? 1 : 0;
+        List<Appointment> appts = appointmentRepository
+                .filterByDoctorNameAndPatientIdAndStatus(name, patientId, status);
+
+        res.put("appointments", toDTOs(appts));
+        return ResponseEntity.ok(res);
     }
 
     /** 6) Detalhes do paciente a partir do token */
     public Map<String, Object> getPatientDetails(String token) {
         String email = tokenService.getEmailFromToken(token);
+
+        if (email == null) {
+            throw new UnauthorizedException("Token inválido ou expirado.");
+        }
+
         Patient p = patientRepository.findByEmail(email);
 
         if (p == null) {
-            throw new NoSuchElementException("Paciente não encontrado.");
+            throw new EntityNotFoundException("Paciente não encontrado.");
         }
 
         // evita expor senha
@@ -151,35 +137,27 @@ public class PatientService {
     }
 
     public ResponseEntity<Map<String, Object>> filterPatient(String condition, String name, String token) {
-        try {
-            String email = tokenService.getEmailFromToken(token);
-            if (email == null) {
-                Map<String, Object> err = new HashMap<>();
-                err.put("message", "Token inválido ou expirado.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
-            }
-
-            Patient p = patientRepository.findByEmail(email);
-            if (p == null) {
-                Map<String, Object> err = new HashMap<>();
-                err.put("message", "Paciente não encontrado.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
-            }
-
-            if (condition != null && !condition.isBlank() && name != null && !name.isBlank())
-                return filterByDoctorAndCondition(condition, name, p.getId());
-            if (condition != null && !condition.isBlank())
-                return filterByCondition(condition, p.getId());
-            if (name != null && !name.isBlank())
-                return filterByDoctor(name, p.getId());
-
-            return getPatientAppointment(p.getId(), token);
-
-        } catch (Exception e) {
-            Map<String, Object> err = new HashMap<>();
-            err.put("message", "Erro ao filtrar agendamentos do paciente.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(err);
+        String email = tokenService.getEmailFromToken(token);
+        if (email == null) {
+            throw new UnauthorizedException("Token inválido ou expirado.");
         }
+
+        Patient p = patientRepository.findByEmail(email);
+        if (p == null) {
+            throw new EntityNotFoundException("Paciente não encontrado.");
+        }
+
+        if (condition != null && !condition.isBlank() && name != null && !name.isBlank()) {
+            return filterByDoctorAndCondition(condition, name, p.getId());
+        }
+        if (condition != null && !condition.isBlank()) {
+            return filterByCondition(condition, p.getId());
+        }
+        if (name != null && !name.isBlank()) {
+            return filterByDoctor(name, p.getId());
+        }
+
+        return getPatientAppointment(p.getId(), token);
     }
 
     /* --------------------- helpers --------------------- */
