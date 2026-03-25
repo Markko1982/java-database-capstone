@@ -64,14 +64,9 @@ public class PatientController {
                     .body(new ApiMessageResponse("Paciente com e-mail ou número de telefone já existe"));
         }
 
-        int res = patientService.createPatient(patient);
-        if (res == 1) {
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiMessageResponse("Cadastro bem-sucedido"));
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiMessageResponse("Erro interno do servidor"));
-        }
+        patientService.createPatient(patient);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiMessageResponse("Cadastro bem-sucedido"));
     }
 
     // 3) Login do paciente

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.project.back_end.dto.ApiError;
+import com.project.back_end.exceptions.UnauthorizedException;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,6 +50,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<ApiError> handleSecurity(SecurityException ex, HttpServletRequest request) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
