@@ -129,7 +129,7 @@ public class DoctorController {
     // 4) Login do médico
     @PostMapping("/login")
     public ResponseEntity<ApiAuthResponse> doctorLogin(@Valid @RequestBody Login login) {
-        return doctorService.validateDoctor(login);
+        return ResponseEntity.ok(doctorService.validateDoctor(login));
     }
 
     // 5) Atualizar médico (somente admin) (Authorization: Bearer <token>)
@@ -187,16 +187,8 @@ public class DoctorController {
                     .body(new ApiMessageResponse(tokenCheck.getBody().get("message")));
         }
 
-        int result = doctorService.deleteDoctor(id);
-        if (result == 1) {
-            return ResponseEntity.ok(new ApiMessageResponse("Médico excluído com sucesso"));
-        } else if (result == -1) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiMessageResponse("Médico não encontrado com id"));
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiMessageResponse("Ocorreu algum erro interno"));
-        }
+        doctorService.deleteDoctorOrThrow(id);
+        return ResponseEntity.ok(new ApiMessageResponse("Médico excluído com sucesso"));
     }
 
     // 7) Filtro de médicos

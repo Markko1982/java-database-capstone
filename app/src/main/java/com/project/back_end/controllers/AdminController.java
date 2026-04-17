@@ -19,6 +19,6 @@ public class AdminController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiAuthResponse> adminLogin(@Valid @RequestBody Admin receivedAdmin) {
-        return authService.validateAdmin(receivedAdmin);
+        return ResponseEntity.ok(authService.validateAdmin(receivedAdmin));
     }
 }
