@@ -181,11 +181,7 @@ public class DoctorController {
     public ResponseEntity<ApiMessageResponse> deleteDoctor(@PathVariable long id,
             @PathVariable String token) {
 
-        ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, "admin");
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
-            return ResponseEntity.status(tokenCheck.getStatusCode())
-                    .body(new ApiMessageResponse(tokenCheck.getBody().get("message")));
-        }
+        authService.validateTokenOrThrow(token, "admin");
 
         doctorService.deleteDoctorOrThrow(id);
         return ResponseEntity.ok(new ApiMessageResponse("Médico excluído com sucesso"));

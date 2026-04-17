@@ -45,6 +45,19 @@ public class AuthService {
         }
     }
 
+    public void validateTokenOrThrow(String token, String user) {
+        try {
+            boolean valid = tokenService.validateToken(token, user);
+            if (!valid) {
+                throw new UnauthorizedException("Token inválido ou expirado.");
+            }
+        } catch (UnauthorizedException ex) {
+            throw ex;
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao validar token.");
+        }
+    }
+
     public ApiAuthResponse validateAdmin(Admin receivedAdmin) {
         if (receivedAdmin == null || receivedAdmin.getUsername() == null || receivedAdmin.getPassword() == null) {
             throw new IllegalArgumentException("Credenciais inválidas.");
