@@ -72,7 +72,7 @@ public class PatientController {
     // 3) Login do paciente
     @PostMapping("/login")
     public ResponseEntity<ApiAuthResponse> patientLogin(@Valid @RequestBody Login login) {
-        return authService.validatePatientLogin(login);
+        return ResponseEntity.ok(authService.validatePatientLogin(login));
     }
 
     // 4) Obter consultas do paciente (Authorization: Bearer <token>)

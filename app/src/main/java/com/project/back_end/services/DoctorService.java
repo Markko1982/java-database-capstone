@@ -5,9 +5,8 @@ import com.project.back_end.models.Doctor;
 import com.project.back_end.repo.jpa.AppointmentRepository;
 import com.project.back_end.repo.jpa.DoctorRepository;
 import com.project.back_end.dto.ApiAuthResponse;
+import com.project.back_end.exceptions.UnauthorizedException;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -129,19 +128,19 @@ public class DoctorService {
         throw new RuntimeException("Erro interno ao excluir médico.");
     }
 
-    public ResponseEntity<ApiAuthResponse> validateDoctor(Login login) {
+    public ApiAuthResponse validateDoctor(Login login) {
         try {
             Doctor d = doctorRepository.findByEmail(login.getIdentifier());
             if (d == null || !Objects.equals(d.getPassword(), login.getPassword())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ApiAuthResponse(null, "Credenciais inválidas."));
+                throw new UnauthorizedException("Credenciais inválidas.");
             }
 
             String token = tokenService.generateToken(d.getEmail());
-            return ResponseEntity.ok(new ApiAuthResponse(token, "Login realizado com sucesso."));
+            return new ApiAuthResponse(token, "Login realizado com sucesso.");
+        } catch (UnauthorizedException ex) {
+            throw ex;
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiAuthResponse(null, "Erro interno."));
+            throw new RuntimeException("Erro interno.");
         }
     }
 
