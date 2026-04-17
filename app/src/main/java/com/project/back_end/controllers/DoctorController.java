@@ -76,11 +76,7 @@ public class DoctorController {
             @PathVariable String date,
             @PathVariable String token) {
 
-        ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, user);
-        if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
-            return tokenCheck;
-        }
-
+        authService.validateTokenOrThrow(token, user);
         LocalDate target = LocalDate.parse(date); // yyyy-MM-dd
         List<String> slots = doctorService.getDoctorAvailability(doctorId, target);
 
