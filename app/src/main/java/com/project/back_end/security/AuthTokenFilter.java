@@ -2,12 +2,12 @@ package com.project.back_end.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.back_end.services.AuthService;
+import com.project.back_end.exceptions.UnauthorizedException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
@@ -121,13 +120,21 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String requiredRole = resolveRole(protectedRule, path);
         if (requiredRole != null) {
-            ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, requiredRole);
-            if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
-                int status = tokenCheck.getStatusCodeValue();
-                String message = tokenCheck.getBody() != null
-                        ? tokenCheck.getBody().getOrDefault("message", "Não autorizado.")
-                        : "Não autorizado.";
-                writeError(response, status, message, path);
+            try {
+                authService.validateTokenOrThrow(token, requiredRole);
+            } catch (UnauthorizedException ex) {
+                writeError(
+                        response,
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        ex.getMessage(),
+                        path);
+                return;
+            } catch (Exception ex) {
+                writeError(
+                        response,
+                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Erro ao validar token.",
+                        path);
                 return;
             }
         }

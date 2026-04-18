@@ -6,7 +6,6 @@ import com.project.back_end.dto.Login;
 import com.project.back_end.models.Patient;
 import com.project.back_end.services.AuthService;
 import com.project.back_end.services.PatientService;
-import com.project.back_end.dto.ApiMessageResponse;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +16,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import jakarta.validation.Valid;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
