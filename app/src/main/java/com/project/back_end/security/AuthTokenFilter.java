@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.project.back_end.dto.ApiError;
+import java.time.Instant;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.List;
@@ -110,8 +113,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String token = extractBearerToken(request.getHeader("Authorization"));
         if (token == null) {
-            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
-                    Map.of("message", "Token ausente ou inválido. Use Authorization: Bearer <token>."));
+            writeError(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "Token ausente ou inválido. Use Authorization: Bearer <token>.",
+                    path);
             return;
         }
 
@@ -120,10 +124,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             ResponseEntity<Map<String, String>> tokenCheck = authService.validateToken(token, requiredRole);
             if (!tokenCheck.getStatusCode().is2xxSuccessful()) {
                 int status = tokenCheck.getStatusCodeValue();
-                Map<String, String> body = tokenCheck.getBody() != null
-                        ? tokenCheck.getBody()
-                        : Map.of("message", "Não autorizado.");
-                writeJson(response, status, body);
+                String message = tokenCheck.getBody() != null
+                        ? tokenCheck.getBody().getOrDefault("message", "Não autorizado.")
+                        : "Não autorizado.";
+                writeError(response, status, message, path);
                 return;
             }
         }
@@ -165,7 +169,17 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         return null;
     }
 
-    private void writeJson(HttpServletResponse response, int status, Map<String, ?> body) throws IOException {
+    private void writeError(HttpServletResponse response, int status, String message, String path) throws IOException {
+        HttpStatus httpStatus = HttpStatus.resolve(status);
+        String error = httpStatus != null ? httpStatus.getReasonPhrase() : "Error";
+
+        ApiError body = new ApiError(
+                Instant.now(),
+                status,
+                error,
+                message,
+                path);
+
         response.setStatus(status);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
