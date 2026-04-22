@@ -32,15 +32,14 @@ public class AuthService {
     public ResponseEntity<Map<String, String>> validateToken(String token, String user) {
         Map<String, String> body = new HashMap<>();
         try {
-            boolean valid = tokenService.validateToken(token, user);
-            if (!valid) {
-                body.put("message", "Token inválido ou expirado.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
-            }
+            validateTokenOrThrow(token, user);
             body.put("message", "Token válido.");
             return ResponseEntity.ok(body);
-        } catch (Exception e) {
-            body.put("message", "Erro ao validar token.");
+        } catch (UnauthorizedException ex) {
+            body.put("message", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+        } catch (RuntimeException ex) {
+            body.put("message", ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
         }
     }
